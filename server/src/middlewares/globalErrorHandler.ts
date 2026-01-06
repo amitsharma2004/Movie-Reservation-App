@@ -15,4 +15,8 @@ const globalErrorHandler = (err: ApiError, _: any, res: any, __: any) => {
     res.status(err.statusCode).json({ error: err.message });
 }
 
+export const AsyncHandler = (fn: Function) => (req: any, res: any, next: any) => {
+    Promise.resolve(fn(req, res, next)).catch(next);
+}
+
 export default globalErrorHandler;
