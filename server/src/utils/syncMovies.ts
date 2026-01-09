@@ -4,7 +4,10 @@ import logger from "./logger.js";
 
 const syncMovies = async () => {
     try {
-        const movies = await Movie.find().lean();
+        const exists = await esClient.indices.exists({ index: "movies" });
+
+        if (!exists) {
+            const movies = await Movie.find().lean();
         
         for (const movie of movies) {
             esClient.index({
@@ -18,6 +21,7 @@ const syncMovies = async () => {
                     cast: movie.cast
                 }
             })
+        }
         }
     } catch (error: any) {
         logger.error('Failed to sync movies to Elasticsearch', error.details[0].message);

@@ -3,10 +3,15 @@ import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import corsOptions from './src/utils/cors.js';
 import logger from './src/utils/logger.js';
+import { dbConnect } from './src/config/database.js';
+import syncMovies from './src/utils/syncMovies.js';
+import MovieRouter from './src/modules/movies/movie.route.js';
+import userRouter from './src/modules/auth/auth.routes.js';
 
 dotenv.config();
 
 const app = express();
+dbConnect()
 
 // Middleware
 app.use(express.json({ limit: '50mb' }));

@@ -3,6 +3,7 @@ import { ApiError } from "../../middlewares/globalErrorHandler.js";
 import { User } from "./auth.model.js";
 import { AsyncHandler } from "../../middlewares/globalErrorHandler.js";
 import { registerSchema, loginSchema } from "./auth.validate.js";
+import cloudinary from "../../config/cloudinary.js";
 
 const register = AsyncHandler (async (req: any, res: any) => {
     logger.info ('Registering new user...');

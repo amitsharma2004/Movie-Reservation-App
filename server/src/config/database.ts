@@ -1,8 +1,11 @@
 import mongoose from "mongoose";
 import { ApiError } from "../middlewares/globalErrorHandler.js";
 import logger from "../utils/logger.js";
+import dotenv from 'dotenv';
 
+dotenv.config();
 const MONGOOSE_URI = process.env.MONGOOSE_URI;
+
 if (!MONGOOSE_URI) {
     throw new Error("Please provide MONGOOSE_URI in the environment variables");
 }

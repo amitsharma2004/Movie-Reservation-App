@@ -50,11 +50,45 @@ const searchMovie = AsyncHandler (async (req: any, res: any) => {
     try {
         const { genre, title, cast, languages } = req.query;
         
-        const query = { bool: { must: { match: [] } } }
-        if (title) {
-            
+        const userQuery = [genre, title, cast, languages].filter(Boolean) as string[];
+        if (userQuery.length == 0) throw new ApiError ('at least one query parameter is required', 400);
+
+        const searchQuery: object = {
+            query: {
+                multi_match: {
+                    query: userQuery.join(" "),
+                    fields: ["title", "genre", "cast", "languages"],
+                    fuzziness: "AUTO",
+                    type: "best_fields",
+                    operator: "OR"
+                }
+            }
         }
-    } catch (error) {
-        
+
+        const searchResponse = await esClient.search({
+            index: "movies",
+            body: searchQuery
+        })
+
+        const movies = searchResponse?.hits?.hits.map((hit: any) => hit._source);
+
+        res.status(200).json({
+            message: 'Movies found',
+            movies,
+            success: true,
+            status: 200
+        })
+    } catch (error: any) {
+        logger.error("Error searching for movie", error);
+        res.status(error.status || 500).json({
+            message: error.message || "Internal Server Error",
+            success: false,
+            status: error.status || 500
+        })
     }
 })
+
+export { 
+    AddMovieToDatabase,
+    searchMovie
+};
