@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
 interface Movie {
+<<<<<<< HEAD
     title: string;
     description: string;
     cast: string[];
@@ -27,6 +28,33 @@ interface Movie {
     showTime?: Date;
     createdAt: Date;
     updatedAt: Date;
+=======
+    title: string,
+    description: string,
+    cast: [string],
+    
+    ticketPrice: {
+        Silver: number,
+        Gold: number,
+        Platinum: number
+    },
+    duration: number, // in minutes
+    ticketsRemaining: number,
+    releaseDate: Date,
+    languages: [string],
+    genre: string,
+    poster: string,
+    video_url?: string,
+    totalTickets: {
+        Silver: number,
+        Gold: number,
+        Platinum: number
+    },
+    totalTicketsSold: number,
+    totalRates: number,
+    comments: mongoose.Types.ObjectId[],
+    showTime?: Date
+>>>>>>> d3e7a1c (feat: added basic dynamic pricing and improve existing features)
 }
 
 const movieSchema = new mongoose.Schema<Movie>({
@@ -54,10 +82,15 @@ const movieSchema = new mongoose.Schema<Movie>({
         }
     },
     duration: {
+<<<<<<< HEAD
         type: Number,
         required: [true, 'Duration is required'],
         min: [1, 'Duration must be at least 1 minute'],
         max: [600, 'Duration cannot exceed 600 minutes']
+=======
+        type: Number, // in minutes
+        required: true
+>>>>>>> d3e7a1c (feat: added basic dynamic pricing and improve existing features)
     },
     ticketsRemaining: {
         type: Number,
@@ -96,11 +129,18 @@ const movieSchema = new mongoose.Schema<Movie>({
         required: false
     },
     totalTickets: {
+<<<<<<< HEAD
         Silver: {
             type: Number,
             required: true,
             min: [0, 'Silver tickets cannot be negative'],
             max: [1000, 'Silver tickets cannot exceed 1000']
+=======
+        type: {
+            Silver: Number,
+            Gold: Number,
+            Platinum: Number
+>>>>>>> d3e7a1c (feat: added basic dynamic pricing and improve existing features)
         },
         Gold: {
             type: Number,
@@ -139,6 +179,7 @@ const movieSchema = new mongoose.Schema<Movie>({
             min: [1, 'Silver ticket price must be at least 1'],
             max: [10000, 'Silver ticket price cannot exceed 10000']
         },
+<<<<<<< HEAD
         Gold: {
             type: Number,
             required: true,
@@ -151,6 +192,9 @@ const movieSchema = new mongoose.Schema<Movie>({
             min: [1, 'Platinum ticket price must be at least 1'],
             max: [10000, 'Platinum ticket price cannot exceed 10000']
         }
+=======
+        required: true
+>>>>>>> d3e7a1c (feat: added basic dynamic pricing and improve existing features)
     },
     showTime: {
         type: Date,
