@@ -32,7 +32,7 @@ const CreateTicket = AsyncHandler (async (req: any, res: any) => {
     try {
         const { error, value } = ticketSchema.validate(req.body);
         if (error) throw new ApiError(`${error.details[0].message}`, 400);
-        if (value.isseatBooked) throw new ApiError('Seat is already booked', 400);
+        if (value.isSeatBooked) throw new ApiError('Seat is already booked', 400);
     
         const userId = req.user._id;
         const seatNumber = value.seatNumber;
@@ -45,11 +45,11 @@ const CreateTicket = AsyncHandler (async (req: any, res: any) => {
         await LockSeat (seatNumber, movieId, userId);
         const ticket = new Ticket ({
             userId: userId,
-            movieId: movieId,
+            movie: movieId, // Changed from movieId to movie to match model
             seatNumber: seatNumber,
             price: movie?.ticketPrice,
             paymentStatus: 'Pending',
-            isseatBooked: false
+            isSeatBooked: false // Changed from isseatBooked to isSeatBooked
         });
 
         await ticket.save();
@@ -107,7 +107,7 @@ const GetUnbookedTickets = AsyncHandler (async (req: any, res: any) => {
     try {
         const movieId = req.params.movieId;
         
-        const tickets = await Ticket.find ({ movie: movieId, isseatBooked: true });
+        const tickets = await Ticket.find ({ movie: movieId, isSeatBooked: true });
         if (tickets) {
             
         }

@@ -38,6 +38,10 @@ const paymentSchema = new mongoose.Schema<Payment>({
         ref: 'Ticket',
         required: true,
     },
+    paymentMethod: {
+        type: String,
+        required: true,
+    },
     currency: {
         type: String,
         required: true,

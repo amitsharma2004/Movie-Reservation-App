@@ -6,7 +6,7 @@ interface Ticket {
   userId: mongoose.Schema.Types.ObjectId;
   orderId: string;
   ticketExpiryDate: Date;
-  status: "Pending" | "Confirmed" | "Cancelled" | "Failed";
+  status: "active" | "expired" | "cancelled" | "used";
   movie: mongoose.Schema.Types.ObjectId;
   paymentId: mongoose.Schema.Types.ObjectId;
   paymentStatus: "Pending" | "Success" | "Failed";
@@ -38,8 +38,8 @@ const ticketSchema = new mongoose.Schema<Ticket>(
     status: {
       type: String,
       required: true,
-      enum: ["Pending", "Confirmed", "Cancelled"],
-      default: "Pending"
+      enum: ["active", "expired", "cancelled", "used"],
+      default: "active"
     },
 
     movie: {

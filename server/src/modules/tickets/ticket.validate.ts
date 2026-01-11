@@ -22,7 +22,7 @@ const ticketSchema = Joi.object({
   paymentId: objectId.required(),
 
   paymentStatus: Joi.string()
-    .valid("Pending", "Confirmed", "Cancelled", "Failed")
+    .valid("Pending", "Success", "Failed")
     .required(),
 
   theater: Joi.string().min(2).max(100).required(),
