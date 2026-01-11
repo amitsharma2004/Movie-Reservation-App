@@ -1,3 +1,18 @@
-import { Resend } from 'resend';
+import { resend } from "../config/resend.js";
+import logger from "../utils/logger.js";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+export async function sendEmail(to: string, subject: string, html: string) {
+    try {
+        const response = await resend.emails.send({
+            from: process.env.SENDER_EMAIL as string,
+            to,
+            subject,
+            html
+        })
+
+        return response;
+    } catch (error) {
+        logger.error('Resend Error: ', error);
+        throw error;
+    }
+}

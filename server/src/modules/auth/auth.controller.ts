@@ -25,7 +25,8 @@ const register = AsyncHandler (async (req: any, res: any) => {
             statusCode: 201,
             user: userData,
             success: true
-        })
+        });
+        
     } catch (error: any) {
         logger.error('failed to create new user');
         res.status(error.status).json({

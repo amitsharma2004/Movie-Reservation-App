@@ -5,6 +5,16 @@ import { ApiError } from "../../middlewares/globalErrorHandler.js";
 import movieSchema from "./movie.validate.js";
 import cloudinary from "../../config/cloudinary.js";
 import esClient from "../../config/elastic_search.js";
+import GenSeatsForMovie from "../../utils/gen_seats.js";
+
+const DynamicPricing = async () => {
+    const currentTime = new Date();
+    const currentHour = currentTime.getHours();
+
+    let priceMultiplier = 1;
+    // pricemulipier based on time left for the show
+    
+}
 
 const AddMovieToDatabase = AsyncHandler (async (req: any, res: any) => {
     logger.info ('Adding movie to database');
@@ -27,7 +37,9 @@ const AddMovieToDatabase = AsyncHandler (async (req: any, res: any) => {
                 totalTickets: value.ticketsRemaining
             })
             logger.info("movie is save to database");
-            res.status(201).json({
+
+            GenSeatsForMovie (movie, value.categories, value.price);
+            return res.status(201).json({
                 message: "Movie added successfully",
                 movie,
                 success: true,
@@ -85,6 +97,16 @@ const searchMovie = AsyncHandler (async (req: any, res: any) => {
             success: false,
             status: error.status || 500
         })
+    }
+});
+
+const FetchNearByShows = AsyncHandler (async (req: any, res: any) => {
+    logger.info('fetching near by shows');
+
+    try {
+        
+    } catch (error) {
+        
     }
 })
 

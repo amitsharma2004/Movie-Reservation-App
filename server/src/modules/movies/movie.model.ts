@@ -4,6 +4,11 @@ interface Movie {
     title: string,
     description: string,
     cast: [string],
+    ticketPrice: {
+        Silver: number,
+        Gold: number,
+        Platinum: number
+    },
     duration: Date,
     ticketsRemaining: number,
     realease_date: Date,
@@ -11,9 +16,14 @@ interface Movie {
     genre: string,
     poster: string,
     video_url?: string,
-    createdAt: Date,
-    updatedAt: Date
-    totalTickets: number
+    totalTickets: {
+        Siver: number,
+        Gold: number,
+        Platinum: number
+    },
+    totalTicketsSold: number,
+    totalRates: number,
+    comments: mongoose.Types.ObjectId[]
 }
 
 const movieSchema = new mongoose.Schema({
@@ -68,7 +78,31 @@ const movieSchema = new mongoose.Schema({
         default: Date.now
     },
     totalTickets: {
+        type: {
+            Siver: Number,
+            Gold: Number,
+            Platinum: Number
+        },
+        required: true
+    },
+    totalTicketsSold: {
         type: Number,
+        required: true
+    },
+    totalRates: {
+        type: Number,
+        required: true
+    },
+    comments: {
+        type: [mongoose.Types.ObjectId],
+        required: true
+    },
+    ticketPrice: {
+        type: {
+            Silver: { type: Number },
+            Gold: { type: Number },
+            Platinum: { type: Number }
+        },
         required: true
     }
 });
