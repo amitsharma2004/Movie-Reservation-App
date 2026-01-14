@@ -1,112 +1,128 @@
+import { Request, Response } from 'express';
 import logger from "../../utils/logger.js";
-import { ApiError } from "../../middlewares/globalErrorHandler.js";
+import { ApiError, AsyncHandler } from "../../middlewares/globalErrorHandler.js";
 import { User } from "./auth.model.js";
-import { AsyncHandler } from "../../middlewares/globalErrorHandler.js";
 import { registerSchema, loginSchema } from "./auth.validate.js";
-import cloudinary from "../../config/cloudinary.js";
+import { AuthRequest } from "../../middlewares/user.middleware.js";
 
-const register = AsyncHandler (async (req: any, res: any) => {
-    logger.info ('Registering new user...');
+const register = AsyncHandler(async (req: Request, res: Response) => {
+    logger.info('Registering new user...');
 
-    try {
-        const { error, value } = registerSchema.validate(req.body);
-        if (error) throw new ApiError(error.details[0].message, 400);
-
-        const isUserExist = await User.findOne({ email: value.email });
-        if (isUserExist) throw new ApiError('user already exist', 400);
-
-        const user = new User({
-            ...value
-        });
-        await user.save();
-        const userData = user.toJSON();
-        res.status(201).json({
-            message: 'user created successfully',
-            statusCode: 201,
-            user: userData,
-            success: true
-        });
-        
-    } catch (error: any) {
-        logger.error('failed to create new user');
-        res.status(error.status).json({
-            message: error.message || 'Internal Server Error',
-            statusCode: error.status || 500,
-            success: false,
-            user: null
-        })
+    const { error, value } = registerSchema.validate(req.body, { abortEarly: false });
+    if (error) {
+        const errorMessages = error.details.map(detail => detail.message).join(', ');
+        throw new ApiError(errorMessages, 400);
     }
+
+    const existingUser = await User.findOne({ email: value.email });
+    if (existingUser) {
+        throw new ApiError('User with this email already exists', 409);
+    }
+
+    const user = new User({
+        fullname: value.fullname,
+        email: value.email,
+        password: value.password,
+        address: value.address,
+        city: value.city,
+        state: value.state,
+        phone: value.phone,
+        zipCode: value.zipCode,
+        country: value.country,
+        role: value.role || 'user',
+        avatar: value.avatar || 'default-avatar-url'
+    });
+
+    await user.save();
+    const userData = user.toJSON();
+
+    logger.info(`User registered successfully: ${userData.email}`);
+    res.status(201).json({
+        success: true,
+        message: 'User registered successfully',
+        statusCode: 201,
+        data: { user: userData }
+    });
 });
 
-const login = AsyncHandler (async (req: any, res: any) => {
-    logger.info ("Logging in user...")
+const login = AsyncHandler(async (req: Request, res: Response) => {
+    logger.info("User login attempt...");
 
-    try {
-        const { error, value } = loginSchema.validate(req.body);
-        if (error) throw new ApiError(error.details[0].message, 400);
+    const { error, value } = loginSchema.validate(req.body, { abortEarly: false });
+    if (error) {
+        const errorMessages = error.details.map(detail => detail.message).join(', ');
+        throw new ApiError(errorMessages, 400);
+    }
 
-        const user = await User.findOne({ email: value.email });
-        if (!user) throw new ApiError('user not found', 404);
+    const user = await User.findOne({ email: value.email });
+    if (!user) {
+        throw new ApiError('Invalid email or password', 401);
+    }
 
-        const isPasswordMatched = user.comparePassword(value.password);
-        if (!isPasswordMatched) throw new ApiError('invalid password', 400);
+    const isPasswordMatched = user.comparePassword(value.password);
+    if (!isPasswordMatched) {
+        throw new ApiError('Invalid email or password', 401);
+    }
 
-        const { accessToken, refreshToken } = await user.generateToken();
-        if ([accessToken, refreshToken].map((field: string) => field?.trim()).includes('')) throw new ApiError('failed to generate token', 500);
+    const { accessToken, refreshToken } = user.generateToken();
+    
+    if (!accessToken || !refreshToken) {
+        logger.error('Token generation failed');
+        throw new ApiError('Failed to generate authentication tokens', 500);
+    }
 
-        const options = {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'strict'
+    const cookieOptions = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict' as const,
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    };
+
+    res.cookie('accessToken', accessToken, { ...cookieOptions, maxAge: 60 * 60 * 1000 }); // 1 hour
+    res.cookie('refreshToken', refreshToken, cookieOptions);
+
+    const userData = user.toJSON();
+    logger.info(`User logged in successfully: ${userData.email}`);
+
+    res.status(200).json({
+        success: true,
+        message: 'Login successful',
+        statusCode: 200,
+        data: {
+            user: userData,
+            tokens: {
+                accessToken,
+                refreshToken
+            }
         }
-        res.cookie('accessToken', accessToken, options);
-        res.cookie('refreshToken', refreshToken, options);
-
-        const userData = user.toJSON();
-        res.status(200).json({
-            message: 'user logged in successfully',
-            tokens: { AccessToken: accessToken ,
-                RefreshToken: refreshToken
-            },
-            statusCode: 200,
-            user: userData,
-            success: true
-        })
-    } catch (error: any) {
-        logger.error('failed to login user');
-        res.status(error.status).json({
-            message: error.message || 'Internal Server Error',
-            statusCode: error.status || 500,
-            success: false,
-            user: null
-        })
-    }
+    });
 });
 
-const logout = AsyncHandler (async (req: any, res: any) => {
-    logger.info ("Logging out user...")
+const logout = AsyncHandler(async (req: Request, res: Response) => {
+    logger.info("User logout...");
 
-    try {
-        res.clearCookie('accessToken');
-        res.clearCookie('refreshToken');
-        res.status(200).json({
-            message: 'user logged out successfully',
-            statusCode: 200,
-            success: true
-        })
-    } catch (error: any) {
-        logger.error('failed to logout user');
-        res.status(error.status).json({
-            message: error.message || 'Internal Server Error',
-            statusCode: error.status || 500,
-            success: false,
-            user: null
-        })
-    }
+    const authReq = req as AuthRequest;
+    const userId = authReq.userId || 'unknown';
+
+    const cookieOptions = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict' as const
+    };
+
+    res.clearCookie('accessToken', cookieOptions);
+    res.clearCookie('refreshToken', cookieOptions);
+
+    logger.info(`User logged out: ${userId}`);
+    res.status(200).json({
+        success: true,
+        message: 'Logout successful',
+        statusCode: 200
+    });
 });
 
 export { 
     register,
     login,
     logout
-}
+};

@@ -1,24 +1,25 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import logger from "../../utils/logger.js";
 
 interface User {
-    fullname: string
-    email: string,
-    password: string,
-    role: string,
-    subscription: mongoose.Schema.Types.ObjectId,
-    cretedAt: Date,
-    updatedAt: Date,
-    address: string,
-    city: string,
-    state: string,
-    phone: string,
-    zipCode: string,
-    country: string,
-    avatar: string,
-    isVerfied: boolean,
-    history: mongoose.Schema.Types.ObjectId[]
+    fullname: string;
+    email: string;
+    password: string;
+    role: string;
+    subscription?: mongoose.Schema.Types.ObjectId;
+    createdAt: Date;
+    updatedAt: Date;
+    address: string;
+    city: string;
+    state: string;
+    phone: string;
+    zipCode: string;
+    country: string;
+    avatar: string;
+    isVerified: boolean;
+    history: mongoose.Schema.Types.ObjectId[];
 }
 
 interface UserMethods {
@@ -29,29 +30,40 @@ interface UserMethods {
 const userSchema = new mongoose.Schema<User, mongoose.Model<User>, UserMethods>({
     fullname: {
         type: String,
-        required: true
+        required: [true, 'Full name is required'],
+        trim: true,
+        minlength: [2, 'Full name must be at least 2 characters'],
+        maxlength: [100, 'Full name cannot exceed 100 characters']
     },
     email: {
         type: String,
-        required: true,
-        unique: true
+        required: [true, 'Email is required'],
+        unique: true,
+        lowercase: true,
+        trim: true,
+        match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email address']
     },
     password: {
         type: String,
-        required: true
+        required: [true, 'Password is required'],
+        minlength: [8, 'Password must be at least 8 characters']
     },
     role: {
         type: String,
-        enum: ["user", "admin"],
+        enum: {
+            values: ["user", "admin"],
+            message: 'Role must be either user or admin'
+        },
         default: "user"
     },
     subscription: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Plan"
     },
-    cretedAt: {
+    createdAt: {
         type: Date,
-        default: Date.now
+        default: Date.now,
+        immutable: true
     },
     updatedAt: {
         type: Date,
@@ -59,33 +71,39 @@ const userSchema = new mongoose.Schema<User, mongoose.Model<User>, UserMethods>(
     },
     address: {
         type: String,
-        required: true
+        required: [true, 'Address is required'],
+        trim: true
     },
     city: {
         type: String,
-        required: true
+        required: [true, 'City is required'],
+        trim: true
     },
     state: {
         type: String,
-        required: true
+        required: [true, 'State is required'],
+        trim: true
     },
     phone: {
         type: String,
-        required: true
+        required: [true, 'Phone number is required'],
+        match: [/^[0-9]{10,15}$/, 'Please provide a valid phone number']
     },
     zipCode: {
         type: String,
-        required: true
+        required: [true, 'Zip code is required'],
+        match: [/^[0-9]{5,10}$/, 'Please provide a valid zip code']
     },
     country: {
         type: String,
-        required: true
+        required: [true, 'Country is required'],
+        trim: true
     },
     avatar: {
         type: String,
-        required: true
+        default: 'default-avatar-url'
     },
-    isVerfied: {
+    isVerified: {
         type: Boolean,
         default: false
     },
@@ -95,41 +113,77 @@ const userSchema = new mongoose.Schema<User, mongoose.Model<User>, UserMethods>(
             ref: "Ticket"
         }
     ]
-})
+}, {
+    timestamps: true
+});
 
+// Hash password before saving
+userSchema.pre('save', async function (next: any) {
+    if (!this.isModified('password')) {
+        return next();
+    }
+
+    try {
+        const salt = await bcrypt.genSalt(10);
+        this.password = await bcrypt.hash(this.password, salt);
+        next();
+    } catch (error: any) {
+        logger.error('Error hashing password:', error);
+        next(error);
+    }
+});
+
+// Update the updatedAt timestamp before saving
 userSchema.pre('save', function (next: any) {
-    if (!this.isModified('password')) return next();
-
-    this.password = bcrypt.hashSync(this.password, 10);
+    this.updatedAt = new Date();
     next();
-})
+});
 
-userSchema.methods.comparePassword = function (password: string) {
-    return bcrypt.compareSync(password, this.password);
-}
+// Compare password method
+userSchema.methods.comparePassword = function (password: string): boolean {
+    try {
+        return bcrypt.compareSync(password, this.password);
+    } catch (error: any) {
+        logger.error('Error comparing passwords:', error);
+        return false;
+    }
+};
 
+// Remove password from JSON response
 userSchema.methods.toJSON = function () {
     const user = this.toObject();
     delete user.password;
     return user;
-}
+};
 
-userSchema.methods.generateToken = function () {
-    const accessToken = jwt.sign({
-        id: this._id,
-        role: this.role
-    }, process.env.JWT_SECRET || "this is accessToken", {
-        expiresIn: "1h"
-    })
+// Generate JWT tokens
+userSchema.methods.generateToken = function (): { accessToken: string; refreshToken: string } {
+    const jwtSecret = process.env.JWT_SECRET;
+    
+    if (!jwtSecret) {
+        logger.error('JWT_SECRET is not configured');
+        throw new Error('JWT_SECRET is not configured');
+    }
 
-    const refreshToken = jwt.sign({
-        id: this._id,
-        role: this.role
-    }, process.env.JWT_SECRET || "this is refreshToken", {
-        expiresIn: "7d"
-    })
+    const accessToken = jwt.sign(
+        {
+            id: this._id.toString(),
+            role: this.role
+        },
+        jwtSecret,
+        { expiresIn: "1h" }
+    );
 
-    return { accessToken, refreshToken }
-}
+    const refreshToken = jwt.sign(
+        {
+            id: this._id.toString(),
+            role: this.role
+        },
+        jwtSecret,
+        { expiresIn: "7d" }
+    );
+
+    return { accessToken, refreshToken };
+};
 
 export const User = mongoose.model('User', userSchema);

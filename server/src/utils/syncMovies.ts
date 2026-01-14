@@ -16,7 +16,7 @@ const syncMovies = async () => {
                 document: {
                     title: movie.title,
                     genre: movie.genre,
-                    year: movie.realease_date.getFullYear(),
+                    year: movie.releaseDate.getFullYear(),
                     languages: movie.languages,
                     cast: movie.cast
                 }
