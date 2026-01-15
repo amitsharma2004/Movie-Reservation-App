@@ -139,11 +139,10 @@ movieSchema.index({ releaseDate: -1 });
 movieSchema.index({ showTime: 1 });
 
 // Calculate tickets remaining before saving
-movieSchema.pre('save', function(next: any) {
+movieSchema.pre('save', function() {
     if (this.isNew) {
         this.ticketsRemaining = this.totalTickets.Silver + this.totalTickets.Gold + this.totalTickets.Platinum;
     }
-    next();
 });
 
 export const Movie = mongoose.model<Movie>("Movie", movieSchema);
