@@ -3,7 +3,7 @@ import logger from '../utils/logger.js';
 
 const connectDB = async (): Promise<void> => {
   try {
-    const mongoURI = process.env.MONGODB_URI;
+    const mongoURI = process.env.MONGOOSE_URI;
     
     if (!mongoURI) {
       throw new Error('MONGODB_URI is not defined in environment variables');
@@ -46,4 +46,4 @@ const connectDB = async (): Promise<void> => {
   }
 };
 
-export default connectDB;
+export { connectDB };

@@ -7,69 +7,12 @@ import cloudinary from "../../config/cloudinary.js";
 import esClient from "../../config/elastic_search.js";
 import GenSeatsForMovie from "../../utils/gen_seats.js";
 import { Ticket } from "../tickets/ticket.model.js";
-<<<<<<< HEAD
-
-interface DynamicPricingParams {
-    movieId: string;
-    seatCategory: 'Silver' | 'Gold' | 'Platinum';
-}
-=======
 import mongoose from "mongoose";
 
 const DynamicPricing = async (movieId: string, seatCategory: string) => {
     const movie = await Movie.findById(movieId);
     if (!movie) return null;
 
-    const showTime = movie.showTime;
-    if (!showTime) return null; // Handle undefined showTime
-    
-    const now = new Date();
-    const hoursLeft = (showTime.getTime() - now.getTime()) / (1000 * 60 * 60);
-
-    // 1) BASE PRICE (from movie or seat model)
-    let basePrice = movie.ticketPrice[seatCategory as keyof typeof movie.ticketPrice];
-
-    // 2) TIME-BASED MULTIPLIER
-    let timeMultiplier = 1;
-    if (hoursLeft <= 1) timeMultiplier = 1.5;       // within 1 hour → +50%
-    else if (hoursLeft <= 3) timeMultiplier = 1.3;  // within 3 hours → +30%
-    else if (hoursLeft <= 6) timeMultiplier = 1.15; // within 6 hours → +15%
-
-    // 3) DEMAND-BASED MULTIPLIER
-    const totalSeats = movie.totalTickets[seatCategory as keyof typeof movie.totalTickets];
-    const bookedTickets = await Ticket.find({
-        movie: movieId,
-        seatCategory: seatCategory,
-        isSeatBooked: true
-    } as any);
-    const bookedCount = bookedTickets.length;
-    const percentageFilled = bookedCount / totalSeats;
-
-    let demandMultiplier = 1;
-    if (percentageFilled >= 0.9) demandMultiplier = 1.4;   // 90%+ seats booked
-    else if (percentageFilled >= 0.7) demandMultiplier = 1.25;
-    else if (percentageFilled >= 0.5) demandMultiplier = 1.15;
-
-    // 4) PEAK HOURS (optional)
-    const hour = now.getHours();
-    let peakMultiplier = 1;
-    if (hour >= 18 && hour <= 22) peakMultiplier = 1.2; // evening peak
-
-    // FINAL PRICE
-    const finalPrice = basePrice * timeMultiplier * demandMultiplier * peakMultiplier;
-    return Number(finalPrice.toFixed(2));
-};
->>>>>>> d3e7a1c (feat: added basic dynamic pricing and improve existing features)
-
-export const DynamicPricing = async (movieId: string, seatCategory: 'Silver' | 'Gold' | 'Platinum'): Promise<number | null> => {
-    try {
-        const movie = await Movie.findById(movieId);
-        if (!movie) {
-            logger.warn(`Movie not found for dynamic pricing: ${movieId}`);
-            return null;
-        }
-
-<<<<<<< HEAD
         const showTime = movie.showTime;
         if (!showTime) {
             logger.warn(`Show time not set for movie: ${movieId}`);
@@ -80,7 +23,8 @@ export const DynamicPricing = async (movieId: string, seatCategory: 'Silver' | '
         const hoursLeft = (showTime.getTime() - now.getTime()) / (1000 * 60 * 60);
 
         // Base price from movie
-        const basePrice = movie.ticketPrice[seatCategory];
+        let ticket: keyof typeof movie.ticketPrice = seatCategory as any;
+        const basePrice = movie.ticketPrice[ticket];
         if (!basePrice) {
             logger.error(`Invalid seat category: ${seatCategory}`);
             return null;
@@ -93,7 +37,7 @@ export const DynamicPricing = async (movieId: string, seatCategory: 'Silver' | '
         else if (hoursLeft <= 6) timeMultiplier = 1.15;
 
         // Demand-based multiplier
-        const totalSeats = movie.totalTickets[seatCategory];
+        const totalSeats = movie.totalTickets[ticket];
         const bookedTickets = await Ticket.countDocuments({
             movie: movieId as any,
             seatCategory: seatCategory,
@@ -111,10 +55,18 @@ export const DynamicPricing = async (movieId: string, seatCategory: 'Silver' | '
         const hour = now.getHours();
         const peakMultiplier = (hour >= 18 && hour <= 22) ? 1.2 : 1;
 
-        // Calculate final price
-        const finalPrice = basePrice * timeMultiplier * demandMultiplier * peakMultiplier;
-        return Number(finalPrice.toFixed(2));
-=======
+    // FINAL PRICE
+    const finalPrice = basePrice * timeMultiplier * demandMultiplier * peakMultiplier;
+    return Number(finalPrice.toFixed(2));
+};
+
+const AddMovieToDatabase = AsyncHandler (async (req: any, res: any) => {
+    logger.info ('Adding movie to database');
+
+    try {
+        const { error, value } = movieSchema.validate(req.body);
+        if (error) throw new ApiError (`${error.details[0].message}`, 400);
+
         const response = await cloudinary.uploader.upload(req.file?.path, {
             resource_type: "auto",
             folder: "movies",
@@ -143,85 +95,14 @@ export const DynamicPricing = async (movieId: string, seatCategory: 'Silver' | '
             success: true,
             status: 201
         });
->>>>>>> d3e7a1c (feat: added basic dynamic pricing and improve existing features)
     } catch (error: any) {
-        logger.error('Error calculating dynamic pricing:', error);
-        return null;
+        logger.error("Error adding movie to database", error);
+        res.status(error.status || 500).json({
+            message: error.message || "Internal Server Error",
+            success: false,
+            status: error.status || 500
+        })
     }
-};
-
-const AddMovieToDatabase = AsyncHandler(async (req: Request, res: Response) => {
-    logger.info('Adding movie to database');
-
-    const { error, value } = movieSchema.validate(req.body, { abortEarly: false });
-    if (error) {
-        const errorMessages = error.details.map(detail => detail.message).join(', ');
-        throw new ApiError(errorMessages, 400);
-    }
-
-    // Check if movie already exists
-    const existingMovie = await Movie.findOne({ title: value.title, releaseDate: value.releaseDate });
-    if (existingMovie) {
-        throw new ApiError('Movie with this title and release date already exists', 409);
-    }
-
-    let posterUrl = 'default-poster-url';
-    
-    // Upload poster to cloudinary if file is provided
-    if (req.file?.path) {
-        try {
-            const response = await cloudinary.uploader.upload(req.file.path, {
-                resource_type: "auto",
-                folder: "movies",
-                format: "webp",
-                quality: "auto",
-                transformation: [
-                    { width: 800, height: 1200, crop: "limit" }
-                ]
-            });
-            posterUrl = response.secure_url;
-        } catch (uploadError: any) {
-            logger.error('Error uploading poster to cloudinary:', uploadError);
-            throw new ApiError('Failed to upload movie poster', 500);
-        }
-    }
-
-    const movie = new Movie({
-        title: value.title,
-        description: value.description,
-        cast: value.cast,
-        duration: value.duration,
-        releaseDate: value.releaseDate,
-        languages: value.languages,
-        genre: value.genre,
-        poster: posterUrl,
-        video_url: value.video_url,
-        totalTickets: value.totalTickets,
-        ticketPrice: value.ticketPrice,
-        showTime: value.showTime,
-        totalTicketsSold: 0,
-        totalRates: 0,
-        comments: []
-    });
-    
-    await movie.save();
-    logger.info(`Movie saved to database: ${movie.title} (ID: ${movie._id})`);
-
-    // Generate seats for the movie
-    try {
-        await GenSeatsForMovie(movie, value.totalTickets, value.ticketPrice);
-        logger.info(`Seats generated for movie: ${movie._id}`);
-    } catch (seatError: any) {
-        logger.error('Error generating seats:', seatError);
-        // Don't fail the request if seat generation fails
-    }
-
-    res.status(201).json({
-        success: true,
-        message: 'Movie added successfully',
-        statusCode: 201,
-        data: { movie }
-    });
 });
 
 const searchMovie = AsyncHandler(async (req: Request, res: Response) => {
