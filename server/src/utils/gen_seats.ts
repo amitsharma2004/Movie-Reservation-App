@@ -1,24 +1,40 @@
+import mongoose from "mongoose";
 import { Ticket } from "../modules/tickets/ticket.model.js";
 
-const GenSeatsForMovie = async (movie: any, category: string, price: string) => {
+export interface IMovie extends mongoose.Document {
+    totalSeats: { Silver: number; Gold: number; Platinum: number };
+    ticketPrice: { Silver: number; Gold: number; Platinum: number };
+}
+
+const GenSeatsForMovie = async (movie: IMovie) => {
     const seats = [];
 
-    const categories = {
-        Silver: movie.totalSeats.Silver,
-        Gold: movie.totalSeats.Gold,
-        Platinum: movie.totalSeats.Platinum
+    const categories = [
+        { name: "Silver", count: movie.totalSeats.Silver, price: movie.ticketPrice.Silver },
+        { name: "Gold", count: movie.totalSeats.Gold, price: movie.ticketPrice.Gold },
+        { name: "Platinum", count: movie.totalSeats.Platinum, price: movie.ticketPrice.Platinum }
+    ];
+
+    let seatCounter = 1;
+
+    for (const category of categories) {
+        for (let i = 0; i < category.count; i++) {
+            seats.push({
+                movie: movie._id,
+                seatNumber: `${category.name}-${seatCounter}`,
+                isseatBooked: false,
+                price: category.price,
+                category: category.name 
+            });
+            seatCounter++;
+        }
     }
 
-    for (let i = 1; i < movie.totalSeats; i++) {
-        seats.push({
-            movie:  movie._id,
-            seatNumber: i + 1,
-            isseatBooked: false,
-            price: movie.price
-        })
+    if (seats.length > 0) {
+        await Ticket.insertMany(seats);
     }
-
-    await Ticket.insertMany (seats);
-}
+    
+    return seats.length;
+};
 
 export default GenSeatsForMovie;

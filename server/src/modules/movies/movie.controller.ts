@@ -8,6 +8,7 @@ import esClient from "../../config/elastic_search.js";
 import GenSeatsForMovie from "../../utils/gen_seats.js";
 import { Ticket } from "../tickets/ticket.model.js";
 import mongoose from "mongoose";
+import { IMovie } from '../../utils/gen_seats.js';
 
 const DynamicPricing = async (movieId: string, seatCategory: string) => {
     const movie = await Movie.findById(movieId);
@@ -88,7 +89,17 @@ const AddMovieToDatabase = AsyncHandler (async (req: any, res: any) => {
         await movie.save();
         logger.info("movie is saved to database");
 
-        // GenSeatsForMovie (movie, value.categories, value.price);
+        try {
+            const movieInput: IMovie = {
+                _id: movie._id, 
+                totalSeats: movie.totalTickets,
+                ticketPrice: movie.ticketPrice
+            } as IMovie;
+
+            const seats = await GenSeatsForMovie(movieInput);
+        } catch (error) {
+            throw new ApiError("Error while generating seats for movie", 401);
+        }
         return res.status(201).json({
             message: "Movie added successfully",
             movie,
