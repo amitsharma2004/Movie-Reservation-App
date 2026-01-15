@@ -32,6 +32,10 @@ app.use((req: any, _: any, next: any) => {
 })
 
 // Routes
+app.get('/health', (_, res) => {
+    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 app.use('/api/movies', MovieRouter);
 app.use('/api/auth', rateLimit, userRouter);
 app.use('/api/tickets', rateLimit);
