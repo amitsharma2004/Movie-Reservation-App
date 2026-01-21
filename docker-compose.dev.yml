@@ -1,17 +1,17 @@
 version: '3.8'
 
 services:
-  # Node.js Server
+  # Node.js Server (Development)
   server:
     build:
       context: ./server
-      dockerfile: Dockerfile
-    container_name: movie-booking-server
+      dockerfile: Dockerfile.dev
+    container_name: movie-booking-server-dev
     restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
       - PORT=3000
       - MONGOOSE_URI=${MONGOOSE_URI}
       - REDIS_URL=redis://redis:6379
@@ -19,7 +19,7 @@ services:
       - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
       - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
       - CLOUDINARY_SECRET=${CLOUDINARY_SECRET}
-      - JWT_SECRET=${JWT_SECRET}
+      - JWT_SECRET=${JWT_SECRET:-dev-secret-key}
       - STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY}
       - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
       - RESEND_API_KEY=${RESEND_API_KEY}
@@ -32,17 +32,18 @@ services:
     networks:
       - movie-booking-network
     volumes:
-      - server-uploads:/app/uploads
+      - ./server:/app
+      - /app/node_modules
 
   # Redis
   redis:
     image: redis:7-alpine
-    container_name: movie-booking-redis
+    container_name: movie-booking-redis-dev
     restart: unless-stopped
     ports:
       - "6379:6379"
     volumes:
-      - redis-data:/data
+      - redis-data-dev:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -54,16 +55,16 @@ services:
   # Elasticsearch
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
-    container_name: movie-booking-elasticsearch
+    container_name: movie-booking-elasticsearch-dev
     restart: unless-stopped
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
     ports:
       - "9200:9200"
     volumes:
-      - elasticsearch-data:/usr/share/elasticsearch/data
+      - elasticsearch-data-dev:/usr/share/elasticsearch/data
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
       interval: 30s
@@ -77,6 +78,5 @@ networks:
     driver: bridge
 
 volumes:
-  redis-data:
-  elasticsearch-data:
-  server-uploads:
+  redis-data-dev:
+  elasticsearch-data-dev:

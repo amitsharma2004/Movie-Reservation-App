@@ -9,6 +9,7 @@ import MovieRouter from './src/modules/movies/movie.route.js';
 import userRouter from './src/modules/auth/auth.routes.js';
 import { RedisClient } from './src/config/redis.js';
 import rateLimit from './src/utils/rate_limiting.js';
+import ThreaterRouter from './src/modules/threaters/threater.route.js';
 
 dotenv.config();
 
@@ -39,6 +40,7 @@ app.get('/health', (_, res) => {
 app.use('/api/movies', MovieRouter);
 app.use('/api/auth', rateLimit, userRouter);
 app.use('/api/tickets', rateLimit);
+app.use('/api/theaters', ThreaterRouter);
 
 // Error Handler
 
