@@ -7,19 +7,15 @@ import { connectDB } from './src/config/database.js';
 import syncMovies from './src/utils/syncMovies.js';
 import MovieRouter from './src/modules/movies/movie.route.js';
 import userRouter from './src/modules/auth/auth.routes.js';
-import { RedisClient } from './src/config/redis.js';
+import './src/config/redis.js'; // Import to initialize Redis connection
 import rateLimit from './src/utils/rate_limiting.js';
 import ThreaterRouter from './src/modules/threaters/threater.route.js';
 
 dotenv.config();
 
 const app = express();
-connectDB()
-RedisClient.connect();
+connectDB();
 
-RedisClient.on('connect', () => {
-    logger.info(`Redis is running on: ${process.env.REDIS_URI}`);
-})
 
 // Middleware
 app.use(express.json({ limit: '50mb' }));

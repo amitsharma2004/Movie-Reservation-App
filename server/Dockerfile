@@ -5,24 +5,28 @@ WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
+COPY tsconfig.json ./
 
-# Install dependencies
+# Install all dependencies (including devDependencies for building)
 RUN npm ci
 
 # Copy source code
 COPY . .
+
+# Build TypeScript to JavaScript
+RUN npm run build
 
 # Production stage
 FROM node:20-alpine AS production
 
 WORKDIR /app
 
-# Copy package files and install production dependencies
+# Copy package files and install production dependencies only
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm ci --only=production && npm cache clean --force
 
-# Copy source from builder
-COPY --from=builder /app .
+# Copy built JavaScript from builder stage
+COPY --from=builder /app/dist ./dist
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
