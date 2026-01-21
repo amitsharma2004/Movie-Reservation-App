@@ -19,8 +19,6 @@ interface ThreaterProps {
     parkingAvailable?: boolean;
     foodCourtAvailable?: boolean;
     rating?: number;
-    createdAt: Date;
-    updatedAt: Date;
 }
 
 const threaterSchema = new mongoose.Schema<ThreaterProps>({
