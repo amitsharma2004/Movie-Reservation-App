@@ -1,9 +1,10 @@
 import mongoose from "mongoose";
 
 interface Movie {
-    title: string;
-    description: string;
-    cast: string[];
+    title: string,
+    description: string,
+    cast: [string],
+    
     ticketPrice: {
         Silver: number;
         Gold: number;
@@ -17,16 +18,14 @@ interface Movie {
     poster: string;
     video_url?: string;
     totalTickets: {
-        Silver: number;
-        Gold: number;
-        Platinum: number;
-    };
-    totalTicketsSold: number;
-    totalRates: number;
-    comments: mongoose.Types.ObjectId[];
-    showTime?: Date;
-    createdAt: Date;
-    updatedAt: Date;
+        Silver: number,
+        Gold: number,
+        Platinum: number
+    },
+    totalTicketsSold: number,
+    totalRates: number,
+    comments: mongoose.Types.ObjectId[],
+    showTime?: Date
 }
 
 const movieSchema = new mongoose.Schema<Movie>({
@@ -54,10 +53,8 @@ const movieSchema = new mongoose.Schema<Movie>({
         }
     },
     duration: {
-        type: Number,
-        required: [true, 'Duration is required'],
-        min: [1, 'Duration must be at least 1 minute'],
-        max: [600, 'Duration cannot exceed 600 minutes']
+        type: Number, // in minutes
+        required: true
     },
     ticketsRemaining: {
         type: Number,
@@ -96,24 +93,12 @@ const movieSchema = new mongoose.Schema<Movie>({
         required: false
     },
     totalTickets: {
-        Silver: {
-            type: Number,
-            required: true,
-            min: [0, 'Silver tickets cannot be negative'],
-            max: [1000, 'Silver tickets cannot exceed 1000']
+        type: {
+            Silver: Number,
+            Gold: Number,
+            Platinum: Number
         },
-        Gold: {
-            type: Number,
-            required: true,
-            min: [0, 'Gold tickets cannot be negative'],
-            max: [1000, 'Gold tickets cannot exceed 1000']
-        },
-        Platinum: {
-            type: Number,
-            required: true,
-            min: [0, 'Platinum tickets cannot be negative'],
-            max: [1000, 'Platinum tickets cannot exceed 1000']
-        }
+        required: true
     },
     totalTicketsSold: {
         type: Number,
@@ -133,24 +118,12 @@ const movieSchema = new mongoose.Schema<Movie>({
         default: []
     },
     ticketPrice: {
-        Silver: {
-            type: Number,
-            required: true,
-            min: [1, 'Silver ticket price must be at least 1'],
-            max: [10000, 'Silver ticket price cannot exceed 10000']
+        type: {
+            Silver: { type: Number },
+            Gold: { type: Number },
+            Platinum: { type: Number }
         },
-        Gold: {
-            type: Number,
-            required: true,
-            min: [1, 'Gold ticket price must be at least 1'],
-            max: [10000, 'Gold ticket price cannot exceed 10000']
-        },
-        Platinum: {
-            type: Number,
-            required: true,
-            min: [1, 'Platinum ticket price must be at least 1'],
-            max: [10000, 'Platinum ticket price cannot exceed 10000']
-        }
+        required: true
     },
     showTime: {
         type: Date,
@@ -166,11 +139,10 @@ movieSchema.index({ releaseDate: -1 });
 movieSchema.index({ showTime: 1 });
 
 // Calculate tickets remaining before saving
-movieSchema.pre('save', function(next: any) {
+movieSchema.pre('save', function() {
     if (this.isNew) {
         this.ticketsRemaining = this.totalTickets.Silver + this.totalTickets.Gold + this.totalTickets.Platinum;
     }
-    next();
 });
 
 export const Movie = mongoose.model<Movie>("Movie", movieSchema);

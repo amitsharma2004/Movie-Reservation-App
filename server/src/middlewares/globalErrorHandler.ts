@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 
 export class ApiError extends Error {
     public readonly statusCode: number;
-    public readonly isOperational: boolean;
+    public readonly isOperational?: boolean;
 
     constructor(message: string, statusCode: number, isOperational = true) {
         super(message);

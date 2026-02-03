@@ -7,19 +7,12 @@ import cloudinary from "../../config/cloudinary.js";
 import esClient from "../../config/elastic_search.js";
 import GenSeatsForMovie from "../../utils/gen_seats.js";
 import { Ticket } from "../tickets/ticket.model.js";
+import mongoose from "mongoose";
+import { IMovie } from '../../utils/gen_seats.js';
 
-interface DynamicPricingParams {
-    movieId: string;
-    seatCategory: 'Silver' | 'Gold' | 'Platinum';
-}
-
-export const DynamicPricing = async (movieId: string, seatCategory: 'Silver' | 'Gold' | 'Platinum'): Promise<number | null> => {
-    try {
-        const movie = await Movie.findById(movieId);
-        if (!movie) {
-            logger.warn(`Movie not found for dynamic pricing: ${movieId}`);
-            return null;
-        }
+const DynamicPricing = async (movieId: string, seatCategory: string) => {
+    const movie = await Movie.findById(movieId);
+    if (!movie) return null;
 
         const showTime = movie.showTime;
         if (!showTime) {
@@ -31,7 +24,8 @@ export const DynamicPricing = async (movieId: string, seatCategory: 'Silver' | '
         const hoursLeft = (showTime.getTime() - now.getTime()) / (1000 * 60 * 60);
 
         // Base price from movie
-        const basePrice = movie.ticketPrice[seatCategory];
+        let ticket: keyof typeof movie.ticketPrice = seatCategory as any;
+        const basePrice = movie.ticketPrice[ticket];
         if (!basePrice) {
             logger.error(`Invalid seat category: ${seatCategory}`);
             return null;
@@ -44,7 +38,7 @@ export const DynamicPricing = async (movieId: string, seatCategory: 'Silver' | '
         else if (hoursLeft <= 6) timeMultiplier = 1.15;
 
         // Demand-based multiplier
-        const totalSeats = movie.totalTickets[seatCategory];
+        const totalSeats = movie.totalTickets[ticket];
         const bookedTickets = await Ticket.countDocuments({
             movie: movieId as any,
             seatCategory: seatCategory,
@@ -62,87 +56,64 @@ export const DynamicPricing = async (movieId: string, seatCategory: 'Silver' | '
         const hour = now.getHours();
         const peakMultiplier = (hour >= 18 && hour <= 22) ? 1.2 : 1;
 
-        // Calculate final price
-        const finalPrice = basePrice * timeMultiplier * demandMultiplier * peakMultiplier;
-        return Number(finalPrice.toFixed(2));
-    } catch (error: any) {
-        logger.error('Error calculating dynamic pricing:', error);
-        return null;
-    }
+    // FINAL PRICE
+    const finalPrice = basePrice * timeMultiplier * demandMultiplier * peakMultiplier;
+    return Number(finalPrice.toFixed(2));
 };
 
-const AddMovieToDatabase = AsyncHandler(async (req: Request, res: Response) => {
-    logger.info('Adding movie to database');
+const AddMovieToDatabase = AsyncHandler (async (req: any, res: any) => {
+    logger.info ('Adding movie to database');
 
-    const { error, value } = movieSchema.validate(req.body, { abortEarly: false });
-    if (error) {
-        const errorMessages = error.details.map(detail => detail.message).join(', ');
-        throw new ApiError(errorMessages, 400);
-    }
-
-    // Check if movie already exists
-    const existingMovie = await Movie.findOne({ title: value.title, releaseDate: value.releaseDate });
-    if (existingMovie) {
-        throw new ApiError('Movie with this title and release date already exists', 409);
-    }
-
-    let posterUrl = 'default-poster-url';
-    
-    // Upload poster to cloudinary if file is provided
-    if (req.file?.path) {
-        try {
-            const response = await cloudinary.uploader.upload(req.file.path, {
-                resource_type: "auto",
-                folder: "movies",
-                format: "webp",
-                quality: "auto",
-                transformation: [
-                    { width: 800, height: 1200, crop: "limit" }
-                ]
-            });
-            posterUrl = response.secure_url;
-        } catch (uploadError: any) {
-            logger.error('Error uploading poster to cloudinary:', uploadError);
-            throw new ApiError('Failed to upload movie poster', 500);
-        }
-    }
-
-    const movie = new Movie({
-        title: value.title,
-        description: value.description,
-        cast: value.cast,
-        duration: value.duration,
-        releaseDate: value.releaseDate,
-        languages: value.languages,
-        genre: value.genre,
-        poster: posterUrl,
-        video_url: value.video_url,
-        totalTickets: value.totalTickets,
-        ticketPrice: value.ticketPrice,
-        showTime: value.showTime,
-        totalTicketsSold: 0,
-        totalRates: 0,
-        comments: []
-    });
-    
-    await movie.save();
-    logger.info(`Movie saved to database: ${movie.title} (ID: ${movie._id})`);
-
-    // Generate seats for the movie
     try {
-        await GenSeatsForMovie(movie, value.totalTickets, value.ticketPrice);
-        logger.info(`Seats generated for movie: ${movie._id}`);
-    } catch (seatError: any) {
-        logger.error('Error generating seats:', seatError);
-        // Don't fail the request if seat generation fails
-    }
+        const { error, value } = movieSchema.validate(req.body);
+        if (error) throw new ApiError (`${error.details[0].message}`, 400);
 
-    res.status(201).json({
-        success: true,
-        message: 'Movie added successfully',
-        statusCode: 201,
-        data: { movie }
-    });
+        const response = await cloudinary.uploader.upload(req.file?.path, {
+            resource_type: "auto",
+            folder: "movies",
+            format: "webp",
+            quality: "auto", 
+        });
+        
+        const movie = new Movie({
+            ...value,
+            poster: response.secure_url,
+            createdAt: new Date(),
+            updatedAt: new Date(), // Fixed typo from updateAt
+            totalTickets: value.totalTickets,
+            totalTicketsSold: 0,
+            totalRates: 0,
+            comments: []
+        });
+        
+        await movie.save();
+        logger.info("movie is saved to database");
+
+        try {
+            const movieInput: IMovie = {
+                _id: movie._id, 
+                totalSeats: movie.totalTickets,
+                ticketPrice: movie.ticketPrice
+            } as IMovie;
+
+            const seats = await GenSeatsForMovie(movieInput);
+        } catch (error) {
+            throw new ApiError("Error while generating seats for movie", 401);
+        }
+        return res.status(201).json({
+            message: "Movie added successfully",
+            movie,
+            success: true,
+            status: 201
+        });
+    } catch (error: any) {
+        logger.error("Error adding movie to database", error);
+        res.status(error.status || 500).json({
+            message: error.message || "Internal Server Error",
+            success: false,
+            status: error.status || 500
+        })
+    }
 });
 
 const searchMovie = AsyncHandler(async (req: Request, res: Response) => {

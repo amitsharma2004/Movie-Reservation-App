@@ -118,25 +118,23 @@ const userSchema = new mongoose.Schema<User, mongoose.Model<User>, UserMethods>(
 });
 
 // Hash password before saving
-userSchema.pre('save', async function (next: any) {
+userSchema.pre('save', async function () {
     if (!this.isModified('password')) {
-        return next();
+        return;
     }
 
     try {
         const salt = await bcrypt.genSalt(10);
         this.password = await bcrypt.hash(this.password, salt);
-        next();
     } catch (error: any) {
-        logger.error('Error hashing password:', error);
-        next(error);
+        logger.error('Error hashing password:', error.message);
+        throw error;
     }
 });
 
 // Update the updatedAt timestamp before saving
-userSchema.pre('save', function (next: any) {
+userSchema.pre('save', function () {
     this.updatedAt = new Date();
-    next();
 });
 
 // Compare password method
