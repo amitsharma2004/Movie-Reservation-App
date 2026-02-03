@@ -3,12 +3,17 @@ import esClient from "../config/elastic_search.js";
 import logger from "./logger.js";
 
 const syncMovies = async () => {
+    if (!esClient) {
+        logger.warn('Elasticsearch client not configured, skipping movie sync');
+        return;
+    }
+
     try {
         const exists = await esClient.indices.exists({ index: "movies" });
 
         if (!exists) {
             const movies = await Movie.find().lean();
-        
+
         for (const movie of movies) {
             esClient.index({
                 index: 'movies',

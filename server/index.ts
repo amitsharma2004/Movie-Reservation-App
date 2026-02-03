@@ -3,7 +3,11 @@ import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import corsOptions from './src/utils/cors.js';
 import logger from './src/utils/logger.js';
+<<<<<<< HEAD
+import connectDB from './src/config/database.js';
+=======
 import { connectDB } from './src/config/database.js';
+>>>>>>> 03a0756d5750b5ca0bd8ba9ccf78442336e7aff6
 import syncMovies from './src/utils/syncMovies.js';
 import MovieRouter from './src/modules/movies/movie.route.js';
 import userRouter from './src/modules/auth/auth.routes.js';
@@ -14,7 +18,16 @@ import ThreaterRouter from './src/modules/threaters/threater.route.js';
 dotenv.config();
 
 const app = express();
+<<<<<<< HEAD
 connectDB();
+=======
+<<<<<<< HEAD
+connectDB()
+RedisClient.connect();
+=======
+connectDB();
+>>>>>>> 03a0756d5750b5ca0bd8ba9ccf78442336e7aff6
+>>>>>>> 82de17052c2ad03919e0d5f4f46362d91724bd38
 
 
 // Middleware
@@ -35,8 +48,12 @@ app.get('/health', (_, res) => {
 
 app.use('/api/movies', MovieRouter);
 app.use('/api/auth', rateLimit, userRouter);
+<<<<<<< HEAD
+// app.use('/api/tickets', rateLimit); // TODO: Implement ticket routes
+=======
 app.use('/api/tickets', rateLimit);
 app.use('/api/theaters', ThreaterRouter);
+>>>>>>> 03a0756d5750b5ca0bd8ba9ccf78442336e7aff6
 
 // Error Handler
 

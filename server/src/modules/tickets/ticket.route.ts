@@ -4,4 +4,4 @@ import { verifyToken } from "../../middlewares/user.middleware.js";
 
 const ticketRouter = express.Router();
 
-ticketRouter.route('/:movieId/new').post(verifyToken, )
+// ticketRouter.route('/:movieId/new').post(verifyToken, createTicket); // TODO: Implement createTicket handler
