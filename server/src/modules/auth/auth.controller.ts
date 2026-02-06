@@ -23,12 +23,12 @@ const register = AsyncHandler(async (req: Request, res: Response) => {
         fullname: value.fullname,
         email: value.email,
         password: value.password,
-        address: value.address,
-        city: value.city,
-        state: value.state,
-        phone: value.phone,
-        zipCode: value.zipCode,
-        country: value.country,
+        address: value.address || '',
+        city: value.city || '',
+        state: value.state || '',
+        phone: value.phone || '',
+        zipCode: value.zipCode || '',
+        country: value.country || '',
         role: value.role || 'user',
         avatar: value.avatar || 'default-avatar-url'
     });

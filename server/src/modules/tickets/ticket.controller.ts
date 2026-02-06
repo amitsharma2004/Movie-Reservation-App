@@ -45,11 +45,11 @@ const CreateTicket = AsyncHandler (async (req: any, res: any) => {
         await LockSeat (seatNumber, movieId, userId);
         const ticket = new Ticket ({
             userId: userId,
-            movie: movieId, // Changed from movieId to movie to match model
+            movie: movieId, 
             seatNumber: seatNumber,
             price: movie?.ticketPrice,
             paymentStatus: 'Pending',
-            isSeatBooked: false // Changed from isseatBooked to isSeatBooked
+            isSeatBooked: false
         });
 
         await ticket.save();
@@ -78,6 +78,7 @@ const ConfirmTicket = AsyncHandler (async (req: any, res: any) => {
         const ticketId = req.params.ticketId;
         const ticket = await Ticket.findById (ticketId);
         if (!ticket) throw new ApiError ('Ticket not found', 404);
+        if (ticket.userId !== userId) throw new ApiError ('Unauthorized Access', 403);
 
         if (!ticket.isSeatBooked) {
             const payment = await Payment.findById (paymentId);
