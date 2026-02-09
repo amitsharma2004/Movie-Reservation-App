@@ -11,12 +11,12 @@ interface User {
     subscription?: mongoose.Schema.Types.ObjectId;
     createdAt: Date;
     updatedAt: Date;
-    address: string;
-    city: string;
-    state: string;
-    phone: string;
-    zipCode: string;
-    country: string;
+    address?: string;
+    city?: string;
+    state?: string;
+    phone?: string;
+    zipCode?: string;
+    country?: string;
     avatar: string;
     isVerified: boolean;
     history: mongoose.Schema.Types.ObjectId[];
@@ -71,33 +71,39 @@ const userSchema = new mongoose.Schema<User, mongoose.Model<User>, UserMethods>(
     },
     address: {
         type: String,
-        required: [true, 'Address is required'],
-        trim: true
+        required: false,
+        trim: true,
+        default: ''
     },
     city: {
         type: String,
-        required: [true, 'City is required'],
-        trim: true
+        required: false,
+        trim: true,
+        default: ''
     },
     state: {
         type: String,
-        required: [true, 'State is required'],
-        trim: true
+        required: false,
+        trim: true,
+        default: ''
     },
     phone: {
         type: String,
-        required: [true, 'Phone number is required'],
-        match: [/^[0-9]{10,15}$/, 'Please provide a valid phone number']
+        required: false,
+        match: [/^[0-9]{10,15}$/, 'Please provide a valid phone number'],
+        default: ''
     },
     zipCode: {
         type: String,
-        required: [true, 'Zip code is required'],
-        match: [/^[0-9]{5,10}$/, 'Please provide a valid zip code']
+        required: false,
+        match: [/^[0-9]{5,10}$/, 'Please provide a valid zip code'],
+        default: ''
     },
     country: {
         type: String,
-        required: [true, 'Country is required'],
-        trim: true
+        required: false,
+        trim: true,
+        default: ''
     },
     avatar: {
         type: String,

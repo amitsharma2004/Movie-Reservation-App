@@ -1,7 +1,7 @@
-import joi from 'joi';
+import Joi from 'joi';
 
-const threaterValidationSchema = joi.object({
-    name: joi.string()
+const threaterValidationSchema = Joi.object({
+    name: Joi.string()
         .required()
         .trim()
         .min(1)
@@ -11,7 +11,7 @@ const threaterValidationSchema = joi.object({
             'any.required': 'Theater name is required'
         }),
     
-    location: joi.string()
+    location: Joi.string()
         .required()
         .trim()
         .min(1)
@@ -21,7 +21,7 @@ const threaterValidationSchema = joi.object({
             'any.required': 'Location is required'
         }),
     
-    address: joi.string()
+    address: Joi.string()
         .required()
         .trim()
         .min(1)
@@ -31,7 +31,7 @@ const threaterValidationSchema = joi.object({
             'any.required': 'Address is required'
         }),
     
-    city: joi.string()
+    city: Joi.string()
         .required()
         .trim()
         .min(1)
@@ -41,7 +41,7 @@ const threaterValidationSchema = joi.object({
             'any.required': 'City is required'
         }),
     
-    state: joi.string()
+    state: Joi.string()
         .required()
         .trim()
         .min(1)
@@ -51,7 +51,7 @@ const threaterValidationSchema = joi.object({
             'any.required': 'State is required'
         }),
     
-    zipCode: joi.string()
+    zipCode: Joi.string()
         .required()
         .trim()
         .pattern(/^[0-9]{5,10}$/)
@@ -61,13 +61,13 @@ const threaterValidationSchema = joi.object({
             'string.pattern.base': 'Zip code must be 5-10 digits'
         }),
     
-    country: joi.string()
+    country: Joi.string()
         .trim()
         .min(1)
         .max(100)
         .default('India'),
     
-    capacity: joi.number()
+    capacity: Joi.number()
         .required()
         .integer()
         .min(1)
@@ -79,7 +79,7 @@ const threaterValidationSchema = joi.object({
             'number.max': 'Capacity cannot exceed 10000'
         }),
     
-    screens: joi.number()
+    screens: Joi.number()
         .required()
         .integer()
         .min(1)
@@ -91,14 +91,14 @@ const threaterValidationSchema = joi.object({
             'number.max': 'Cannot exceed 50 screens'
         }),
     
-    amenities: joi.array()
-        .items(joi.string().trim().min(1).max(50))
+    amenities: Joi.array()
+        .items(Joi.string().trim().min(1).max(50))
         .default([]),
     
-    isActive: joi.boolean()
+    isActive: Joi.boolean()
         .default(true),
     
-    threaterLogo: joi.string()
+    threaterLogo: Joi.string()
         .required()
         .uri()
         .messages({
@@ -107,14 +107,14 @@ const threaterValidationSchema = joi.object({
             'string.uri': 'Theater logo must be a valid URL'
         }),
     
-    contactNumber: joi.string()
+    contactNumber: Joi.string()
         .trim()
         .pattern(/^[+]?[0-9\s\-\(\)]{10,15}$/)
         .messages({
             'string.pattern.base': 'Contact number must be a valid phone number'
         }),
     
-    email: joi.string()
+    email: Joi.string()
         .trim()
         .email()
         .lowercase()
@@ -122,20 +122,20 @@ const threaterValidationSchema = joi.object({
             'string.email': 'Email must be a valid email address'
         }),
     
-    description: joi.string()
+    description: Joi.string()
         .trim()
         .max(1000)
         .messages({
             'string.max': 'Description cannot exceed 1000 characters'
         }),
     
-    parkingAvailable: joi.boolean()
+    parkingAvailable: Joi.boolean()
         .default(false),
     
-    foodCourtAvailable: joi.boolean()
+    foodCourtAvailable: Joi.boolean()
         .default(false),
     
-    rating: joi.number()
+    rating: Joi.number()
         .min(0)
         .max(5)
         .default(0)

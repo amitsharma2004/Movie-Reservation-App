@@ -25,7 +25,6 @@ const registerSchema = Joi.object({
     password: Joi.string()
         .min(8)
         .max(255)
-        .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)
         .required()
         .messages({
             'string.empty': 'Password is required',
@@ -37,9 +36,9 @@ const registerSchema = Joi.object({
         .min(5)
         .max(255)
         .trim()
-        .required()
+        .optional()
+        .allow('')
         .messages({
-            'string.empty': 'Address is required',
             'string.min': 'Address must be at least 5 characters'
         }),
     
@@ -47,33 +46,35 @@ const registerSchema = Joi.object({
         .min(2)
         .max(100)
         .trim()
-        .required()
+        .optional()
+        .allow('')
         .messages({
-            'string.empty': 'City is required'
+            'string.min': 'City must be at least 2 characters'
         }),
     
     state: Joi.string()
         .min(2)
         .max(100)
         .trim()
-        .required()
+        .optional()
+        .allow('')
         .messages({
-            'string.empty': 'State is required'
+            'string.min': 'State must be at least 2 characters'
         }),
     
     phone: Joi.string()
         .pattern(/^[0-9]{10,15}$/)
-        .required()
+        .optional()
+        .allow('')
         .messages({
-            'string.empty': 'Phone number is required',
             'string.pattern.base': 'Phone number must be between 10-15 digits'
         }),
     
     zipCode: Joi.string()
         .pattern(/^[0-9]{5,10}$/)
-        .required()
+        .optional()
+        .allow('')
         .messages({
-            'string.empty': 'Zip code is required',
             'string.pattern.base': 'Zip code must be between 5-10 digits'
         }),
     
@@ -81,9 +82,10 @@ const registerSchema = Joi.object({
         .min(2)
         .max(100)
         .trim()
-        .required()
+        .optional()
+        .allow('')
         .messages({
-            'string.empty': 'Country is required'
+            'string.min': 'Country must be at least 2 characters'
         }),
     
     role: Joi.string()

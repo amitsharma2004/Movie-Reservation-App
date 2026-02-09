@@ -1,49 +1,15 @@
-import mongoose from 'mongoose';
-import logger from '../utils/logger.js';
+import mongoose from "mongoose";
+import logger from "../utils/logger.js";
+import { ApiError } from "../middlewares/globalErrorHandler.js";
 
-const connectDB = async (): Promise<void> => {
-  try {
-    const mongoURI = process.env.MONGOOSE_URI;
-    
-    if (!mongoURI) {
-      throw new Error('MONGODB_URI is not defined in environment variables');
-    }
+const MONGO_URI = process.env.MONGOOSE_URI || "";
+if (!MONGO_URI) throw new ApiError ('MONGO_URI not found', 400);
 
-    const conn = await mongoose.connect(mongoURI, {
-      // Remove deprecated options that are now defaults in Mongoose 6+
-    });
+const dbConnect = async () => {
+  const connection = await mongoose.connect (MONGO_URI);
+  if (!connection) throw new ApiError ('mongodb is not connected', 400);
 
-    logger.info(`MongoDB Connected: ${conn.connection.host}`);
+  console.log (`mongoDB is conneted: ${connection.connection.host}`);
+}
 
-    // Connection event listeners
-    mongoose.connection.on('connected', () => {
-      logger.info('Mongoose connected to MongoDB');
-    });
-
-    mongoose.connection.on('error', (err) => {
-      logger.error('Mongoose connection error:', err);
-    });
-
-    mongoose.connection.on('disconnected', () => {
-      logger.warn('Mongoose disconnected from MongoDB');
-    });
-
-    // Graceful shutdown
-    process.on('SIGINT', async () => {
-      try {
-        await mongoose.connection.close();
-        logger.info('MongoDB connection closed through app termination');
-        process.exit(0);
-      } catch (error) {
-        logger.error('Error during MongoDB disconnection:', error);
-        process.exit(1);
-      }
-    });
-
-  } catch (error) {
-    logger.error('Database connection failed:', error);
-    process.exit(1);
-  }
-};
-
-export { connectDB };
+export { dbConnect };
