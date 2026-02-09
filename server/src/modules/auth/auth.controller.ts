@@ -19,6 +19,11 @@ const register = AsyncHandler(async (req: Request, res: Response) => {
         throw new ApiError('User with this email already exists', 409);
     }
 
+    // Handle avatar upload
+    const avatarPath = req.file 
+        ? `/uploads/${req.file.filename}` 
+        : 'default-avatar-url';
+
     const user = new User({
         fullname: value.fullname,
         email: value.email,
@@ -30,7 +35,7 @@ const register = AsyncHandler(async (req: Request, res: Response) => {
         zipCode: value.zipCode || '',
         country: value.country || '',
         role: value.role || 'user',
-        avatar: value.avatar || 'default-avatar-url'
+        avatar: avatarPath
     });
 
     await user.save();

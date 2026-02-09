@@ -27,6 +27,10 @@ app.use (cors({
     credentials: true
 }))
 
+
+// Serve static files from uploads directory
+app.use('/uploads', express.static('uploads'));
+
 app.use((req: any, _: any, next: any) => {
     logger.info(`Request: ${req.method} ${req.url}`);
     next();
