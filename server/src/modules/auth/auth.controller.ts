@@ -40,13 +40,32 @@ const register = AsyncHandler(async (req: Request, res: Response) => {
 
     await user.save();
     const userData = user.toJSON();
+    
+    // Generate tokens for auto-login after registration
+    const { accessToken, refreshToken } = user.generateToken();
+    
+    const cookieOptions = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax' as const,
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    };
+
+    res.cookie('accessToken', accessToken, { ...cookieOptions, maxAge: 60 * 60 * 1000 }); // 1 hour
+    res.cookie('refreshToken', refreshToken, cookieOptions);
 
     logger.info(`User registered successfully: ${userData.email}`);
     res.status(201).json({
         success: true,
         message: 'User registered successfully',
         statusCode: 201,
-        data: { user: userData }
+        data: { 
+            user: userData,
+            tokens: {
+                accessToken,
+                refreshToken
+            }
+        }
     });
 });
 
@@ -79,7 +98,7 @@ const login = AsyncHandler(async (req: Request, res: Response) => {
     const cookieOptions = {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict' as const,
+        sameSite: 'lax' as const,
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     };
 
@@ -112,7 +131,7 @@ const logout = AsyncHandler(async (req: Request, res: Response) => {
     const cookieOptions = {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict' as const
+        sameSite: 'lax' as const
     };
 
     res.clearCookie('accessToken', cookieOptions);
@@ -126,8 +145,76 @@ const logout = AsyncHandler(async (req: Request, res: Response) => {
     });
 });
 
+const getUser = AsyncHandler(async (req: Request, res: Response) => {
+    const authReq = req as AuthRequest;
+    const userId = authReq.userId;
+
+    if (!userId) {
+        throw new ApiError('User not authenticated', 401);
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+        throw new ApiError('User not found', 404);
+    }
+
+    const userData = user.toJSON();
+    logger.info(`User profile retrieved: ${userData.email}`);
+
+    res.status(200).json({
+        success: true,
+        message: 'User profile retrieved successfully',
+        statusCode: 200,
+        data: { user: userData }
+    });
+});
+
+// const updateProfile = AsyncHandler(async (req: Request, res: Response) => {
+//     const authReq = req as AuthRequest;
+//     const userId = authReq.userId;
+
+//     if (!userId) {
+//         throw new ApiError('User not authenticated', 401);
+//     }
+
+//     const { error, value } = updateProfileSchema.validate(req.body, { abortEarly: false });
+//     if (error) {
+//         const errorMessages = error.details.map(detail => detail.message).join(', ');
+//         throw new ApiError(errorMessages, 400);
+//     }
+
+//     const user = await User.findById(userId);
+//     if (!user) {
+//         throw new ApiError('User not found', 404);
+//     }
+
+//     // Handle avatar upload if provided
+//     if (req.file) {
+//         value.avatar = `/uploads/${req.file.filename}`;
+//     }
+
+//     // Update user fields
+//     Object.keys(value).forEach(key => {
+//         if (value[key] !== undefined) {
+//             user[key] = value[key];
+//         }
+//     });
+
+//     await user.save();
+//     const userData = user.toJSON();
+
+//     logger.info(`User profile updated: ${userData.email}`);
+//     res.status(200).json({
+//         success: true,
+//         message: 'Profile updated successfully',
+//         statusCode: 200,
+//         data: { user: userData }
+//     });
+// });
+
 export { 
     register,
     login,
-    logout
+    logout,
+    getUser
 };
