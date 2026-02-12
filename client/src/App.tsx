@@ -6,7 +6,13 @@ import RegisterPage from '@/pages/register';
 import HomePage from '@/pages/home';
 import MoviesPage from '@/pages/movies';
 import MovieDetailPage from '@/pages/movie-detail';
+import ProfilePage from '@/pages/profile';
+import TheatersPage from '@/pages/admin/theaters';
+import NewTheaterPage from '@/pages/admin/theater-new';
+import EditTheaterPage from '@/pages/admin/theater-edit';
 import { GuestRoute } from '@/middleware/guest-route';
+import { AdminRoute } from '@/middleware/admin-route';
+import { ProtectedRoute } from '@/middleware/protected-route';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -27,6 +33,43 @@ function App() {
           <Route path="/movies" element={<MoviesPage />} />
           <Route path="/movies/:id" element={<MovieDetailPage />} />
           
+          {/* Profile Route */}
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          
+          {/* Admin Routes */}
+          <Route
+            path="/admin/theaters"
+            element={
+              <AdminRoute>
+                <TheatersPage />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/theaters/new"
+            element={
+              <AdminRoute>
+                <NewTheaterPage />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/theaters/:id/edit"
+            element={
+              <AdminRoute>
+                <EditTheaterPage />
+              </AdminRoute>
+            }
+          />
+          
+          {/* Auth Routes */}
           <Route
             path="/login"
             element={

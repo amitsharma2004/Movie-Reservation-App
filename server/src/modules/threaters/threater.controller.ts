@@ -32,9 +32,9 @@ const updateTheater = AsyncHandler(async (req: any, res: Response) => {
     const authRequest = req as AuthRequest;
     logger.info('Updating theater...');
 
-    const { theaterId } = authRequest.params;
+    const { id } = authRequest.params;
 
-    if (!theaterId) {
+    if (!id) {
         throw new ApiError('Theater ID is required', 400);
     }
 
@@ -44,9 +44,9 @@ const updateTheater = AsyncHandler(async (req: any, res: Response) => {
         throw new ApiError(errorMessages, 400);
     }
 
-    const theater = await theaterService.updateTheater(theaterId, value);
+    const theater = await theaterService.updateTheater(id, value);
 
-    logger.info(`Theater ${theaterId} updated successfully`);
+    logger.info(`Theater ${id} updated successfully`);
     res.status(200).json({
         success: true,
         message: 'Theater updated successfully',
@@ -60,15 +60,15 @@ const getTheater = AsyncHandler(async (req: any, res: Response) => {
     const authRequest = req as AuthRequest;
     logger.info('Fetching theater details...');
 
-    const { theaterId } = authRequest.params;
+    const { id } = authRequest.params;
 
-    if (!theaterId) {
+    if (!id) {
         throw new ApiError('Theater ID is required', 400);
     }
 
-    const theater = await theaterService.getTheaterById(theaterId);
+    const theater = await theaterService.getTheaterById(id);
 
-    logger.info(`Theater ${theaterId} fetched successfully`);
+    logger.info(`Theater ${id} fetched successfully`);
     res.status(200).json({
         success: true,
         message: 'Theater fetched successfully',
@@ -104,15 +104,15 @@ const deleteTheater = AsyncHandler(async (req: any, res: Response) => {
     const authRequest = req as AuthRequest;
     logger.info('Deleting theater...');
 
-    const { theaterId } = authRequest.params;
+    const { id } = authRequest.params;
 
-    if (!theaterId) {
+    if (!id) {
         throw new ApiError('Theater ID is required', 400);
     }
 
-    await theaterService.deleteTheater(theaterId);
+    await theaterService.deleteTheater(id);
 
-    logger.info(`Theater ${theaterId} deleted successfully`);
+    logger.info(`Theater ${id} deleted successfully`);
     res.status(200).json({
         success: true,
         message: 'Theater deleted successfully',

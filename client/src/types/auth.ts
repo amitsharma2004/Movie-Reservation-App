@@ -4,6 +4,15 @@ export interface User {
   email: string;
   avatar?: string;
   role: 'user' | 'admin';
+  address?: string;
+  city?: string;
+  state?: string;
+  phone?: string;
+  zipCode?: string;
+  country?: string;
+  isVerified?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface LoginCredentials {
@@ -23,4 +32,15 @@ export interface AuthResponse {
   message: string;
   user?: User;
   token?: string;
+}
+
+
+export interface ProfileUpdateData {
+  fullname?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  phone?: string;
+  zipCode?: string;
+  country?: string;
 }

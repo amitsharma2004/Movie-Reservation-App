@@ -5,7 +5,7 @@ import cookieParser from 'cookie-parser';
 import logger from './src/utils/logger.js';
 import syncMovies from './src/utils/syncMovies.js';
 import MovieRouter from './src/modules/movies/movie.route.js';
-import userRouter from './src/modules/auth/auth.routes.js';
+import authRouter from './src/modules/auth/auth.routes.js';
 import './src/config/redis.js'; // Import to initialize Redis connection
 import rateLimit from './src/utils/rate_limiting.js';
 import ThreaterRouter from './src/modules/threaters/threater.route.js';
@@ -24,7 +24,9 @@ app.use(express.urlencoded({ extended: true }));
 // app.use(corsOptions);
 app.use (cors({
     origin: 'http://localhost:5173',
-    credentials: true
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
 }))
 
 
@@ -42,7 +44,7 @@ app.get('/health', (_, res) => {
 });
 
 app.use('/api/movies', MovieRouter);
-app.use('/api/auth', rateLimit, userRouter);
+app.use('/api/auth', rateLimit, authRouter);
 app.use('/api/tickets', rateLimit);
 app.use('/api/theaters', ThreaterRouter);
 

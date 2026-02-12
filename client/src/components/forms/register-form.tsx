@@ -1,7 +1,5 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
@@ -12,17 +10,12 @@ import { AvatarUpload } from '@/components/shared/avatar-upload';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 
-const registerSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ['confirmPassword'],
-});
-
-type RegisterFormData = z.infer<typeof registerSchema>;
+type RegisterFormData = {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+};
 
 export function RegisterForm() {
   const navigate = useNavigate();
@@ -33,14 +26,22 @@ export function RegisterForm() {
   const {
     register,
     handleSubmit,
-    formState: { errors },
-  } = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
-  });
+    watch,
+  } = useForm<RegisterFormData>();
+
+  const password = watch('password');
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
       setError('');
+      
+      // Check if passwords match
+      if (data.password !== data.confirmPassword) {
+        setError("Passwords don't match");
+        toast.error("Passwords don't match");
+        return;
+      }
+      
       const response = await registerUser({
         name: data.name,
         email: data.email,
@@ -90,9 +91,6 @@ export function RegisterForm() {
               placeholder="John Doe"
               {...register('name')}
             />
-            {errors.name && (
-              <p className="text-sm text-red-600">{errors.name.message}</p>
-            )}
           </div>
 
           <div className="space-y-2">
@@ -103,9 +101,6 @@ export function RegisterForm() {
               placeholder="you@example.com"
               {...register('email')}
             />
-            {errors.email && (
-              <p className="text-sm text-red-600">{errors.email.message}</p>
-            )}
           </div>
 
           <div className="space-y-2">
@@ -116,9 +111,6 @@ export function RegisterForm() {
               placeholder="••••••••"
               {...register('password')}
             />
-            {errors.password && (
-              <p className="text-sm text-red-600">{errors.password.message}</p>
-            )}
           </div>
 
           <div className="space-y-2">
@@ -129,9 +121,6 @@ export function RegisterForm() {
               placeholder="••••••••"
               {...register('confirmPassword')}
             />
-            {errors.confirmPassword && (
-              <p className="text-sm text-red-600">{errors.confirmPassword.message}</p>
-            )}
           </div>
         </CardContent>
 
