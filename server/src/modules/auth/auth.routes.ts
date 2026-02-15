@@ -1,5 +1,5 @@
 import express from 'express';
-import { login, register, logout, getUser } from './auth.controller.js';
+import { login, register, logout, getUser, updateUser } from './auth.controller.js';
 import { verifyToken } from '../../middlewares/user.middleware.js';
 import { upload } from '../../config/multer.js';
 
@@ -15,5 +15,8 @@ userRouter.post('/logout', verifyToken, logout);
 
 // GET /auth/profile - Get user profile
 userRouter.get('/profile', verifyToken, getUser);
+
+userRouter.put ('/profile', verifyToken, updateUser);
+// PUT /auth/update - Update user profile
 
 export default userRouter;

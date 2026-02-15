@@ -112,7 +112,7 @@ export default function ProfilePage() {
               <div className="flex flex-col items-center text-center space-y-4">
                 <Avatar className="h-24 w-24">
                   {user.avatar && user.avatar !== 'default-avatar-url' ? (
-                    <AvatarImage src={`http://localhost:3000${user.avatar}`} alt={user.name} />
+                    <AvatarImage src={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000'}${user.avatar}`} alt={user.name} />
                   ) : (
                     <AvatarFallback className="text-2xl">
                       <User className="h-12 w-12" />
