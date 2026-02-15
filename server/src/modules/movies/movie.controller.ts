@@ -142,12 +142,13 @@ const searchMovie = AsyncHandler(async (req: Request, res: Response) => {
 
         if (!esClient) {
             logger.warn('Elasticsearch client not available, falling back to MongoDB search');
+            const searchText = queryParams.join(" ");
             const movies = await Movie.find({
                 $or: [
-                    { title: { $regex: query, $options: 'i' } },
-                    { genre: { $regex: query, $options: 'i' } },
-                    { cast: { $regex: query, $options: 'i' } },
-                    { languages: { $regex: query, $options: 'i' } }
+                    { title: { $regex: searchText, $options: 'i' } },
+                    { genre: { $regex: searchText, $options: 'i' } },
+                    { cast: { $regex: searchText, $options: 'i' } },
+                    { languages: { $regex: searchText, $options: 'i' } }
                 ]
             });
             
