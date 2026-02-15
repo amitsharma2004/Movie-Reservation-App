@@ -26,10 +26,7 @@ export function RegisterForm() {
   const {
     register,
     handleSubmit,
-    watch,
   } = useForm<RegisterFormData>();
-
-  const password = watch('password');
 
   const onSubmit = async (data: RegisterFormData) => {
     try {

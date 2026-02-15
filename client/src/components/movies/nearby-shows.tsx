@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNearbyMovies } from '@/hooks/use-movies';
 import { MovieGrid } from './movie-grid';
 import { Button } from '@/components/ui/button';
