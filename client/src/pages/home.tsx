@@ -59,7 +59,7 @@ export default function HomePage() {
             >
               <Avatar className="h-10 w-10">
                 {user?.avatar && user.avatar !== 'default-avatar-url' ? (
-                  <AvatarImage src={`http://localhost:3000${user.avatar}`} alt={user.name} />
+                  <AvatarImage src={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000'}${user.avatar}`} alt={user.name} />
                 ) : (
                   <AvatarFallback>
                     <User className="h-5 w-5" />

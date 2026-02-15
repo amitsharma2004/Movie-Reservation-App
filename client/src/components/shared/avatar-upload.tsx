@@ -83,7 +83,7 @@ export function AvatarUpload({ onChange, error, className }: AvatarUploadProps) 
           size="sm"
           onClick={() => inputRef.current?.click()}
         >
-          <Upload className="mr-2 h-4 w-4" />
+          <Upload className="mr-2 h-4 w-4 text-white"/>
           {preview ? 'Change Avatar' : 'Upload Avatar'}
         </Button>
         <p className="text-xs text-zinc-500">PNG, JPG up to 5MB</p>

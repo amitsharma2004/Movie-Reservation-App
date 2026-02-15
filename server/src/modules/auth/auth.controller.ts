@@ -169,52 +169,64 @@ const getUser = AsyncHandler(async (req: Request, res: Response) => {
     });
 });
 
-// const updateProfile = AsyncHandler(async (req: Request, res: Response) => {
-//     const authReq = req as AuthRequest;
-//     const userId = authReq.userId;
-
-//     if (!userId) {
-//         throw new ApiError('User not authenticated', 401);
-//     }
-
-//     const { error, value } = updateProfileSchema.validate(req.body, { abortEarly: false });
-//     if (error) {
-//         const errorMessages = error.details.map(detail => detail.message).join(', ');
-//         throw new ApiError(errorMessages, 400);
-//     }
-
-//     const user = await User.findById(userId);
-//     if (!user) {
-//         throw new ApiError('User not found', 404);
-//     }
-
-//     // Handle avatar upload if provided
-//     if (req.file) {
-//         value.avatar = `/uploads/${req.file.filename}`;
-//     }
-
-//     // Update user fields
-//     Object.keys(value).forEach(key => {
-//         if (value[key] !== undefined) {
-//             user[key] = value[key];
-//         }
-//     });
-
-//     await user.save();
-//     const userData = user.toJSON();
-
-//     logger.info(`User profile updated: ${userData.email}`);
-//     res.status(200).json({
-//         success: true,
-//         message: 'Profile updated successfully',
-//         statusCode: 200,
-//         data: { user: userData }
-//     });
-// });
+const updateUser = AsyncHandler(async (req: Request, res: Response) => {
+    try {
+        logger.info("Updating user profile...");
+    
+        const authReq = req as AuthRequest;
+        const userId = authReq.userId;
+    
+        if (!userId) {
+            throw new ApiError('User not authenticated', 401);
+        }
+    
+        const user = await User.findById(userId);
+        if (!user) {
+            throw new ApiError('User not found', 404);
+        }
+    
+        // Handle avatar upload if provided
+        const avatarPath = req.file 
+            ? `/uploads/${req.file.filename}` 
+            : user.avatar;
+    
+        const updateData = {
+            fullname: req.body.fullname || user.fullname,
+            address: req.body.address || user.address,
+            city: req.body.city || user.city,
+            state: req.body.state || user.state,
+            phone: req.body.phone || user.phone,
+            zipCode: req.body.zipCode || user.zipCode,
+            country: req.body.country || user.country,
+            avatar: avatarPath
+    };
+        const updatedUser = await User.findByIdAndUpdate(userId, updateData, { new: true });
+        if (!updatedUser) {
+            throw new ApiError('Failed to update user profile', 500);
+        }
+    
+        const userData = updatedUser.toJSON();
+        logger.info(`User profile updated successfully: ${userData.email}`);
+    
+        res.status(200).json({
+            success: true,
+            message: 'User profile updated successfully',
+            statusCode: 200,
+            data: { user: userData }
+        });
+    } catch (error: any) {
+        logger.error (`${error.message}`);
+        res.status (error.status || 500).json ({
+            messsag: error.message,
+            status: error.status || 500
+        })
+    }
+});
 
 export { 
     register,
     login,
     logout,
-    getUser
+    getUser,
+    updateUser
 };
