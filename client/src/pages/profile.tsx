@@ -8,18 +8,31 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, User, Mail, Calendar, Loader2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { 
+  ArrowLeft, 
+  User, 
+  Mail, 
+  Calendar, 
+  Loader2,
+  Building2,
+  Ticket,
+  Heart,
+  Settings,
+  ChevronRight
+} from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import type { ProfileUpdateData } from '@/types/auth';
 
 export default function ProfilePage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, getProfile, updateProfile } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState('');
+  const hasTheater = false; // TODO: Check if user owns a theater via API
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -59,14 +72,18 @@ export default function ProfilePage() {
     }
   };
 
+  const handleAddTheater = () => {
+    navigate('/theater/onboarding', { state: { from: location.pathname } });
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-zinc-50">
-        <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="container mx-auto px-4 py-8 max-w-6xl">
           <Skeleton className="h-10 w-32 mb-6" />
-          <div className="grid md:grid-cols-3 gap-6">
-            <Skeleton className="h-64" />
-            <div className="md:col-span-2 space-y-4">
+          <div className="grid lg:grid-cols-4 gap-6">
+            <Skeleton className="h-96" />
+            <div className="lg:col-span-3 space-y-4">
               <Skeleton className="h-48" />
               <Skeleton className="h-48" />
             </div>
@@ -90,7 +107,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-zinc-50">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
         <Button
           variant="ghost"
           onClick={() => navigate('/')}
@@ -102,54 +119,140 @@ export default function ProfilePage() {
 
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">My Profile</h1>
-          <p className="text-zinc-600">Manage your personal information</p>
+          <p className="text-zinc-600">Manage your personal information and preferences</p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6">
-          {/* Profile Card */}
-          <Card className="md:col-span-1">
-            <CardContent className="p-6">
-              <div className="flex flex-col items-center text-center space-y-4">
-                <Avatar className="h-24 w-24">
-                  {user.avatar && user.avatar !== 'default-avatar-url' ? (
-                    <AvatarImage src={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000'}${user.avatar}`} alt={user.name} />
-                  ) : (
-                    <AvatarFallback className="text-2xl">
-                      <User className="h-12 w-12" />
-                    </AvatarFallback>
-                  )}
-                </Avatar>
-                
-                <div className="w-full">
-                  <h2 className="text-xl font-semibold">{user.name}</h2>
-                  <p className="text-sm text-zinc-500 flex items-center justify-center gap-1 mt-1">
-                    <Mail className="h-3 w-3" />
-                    {user.email}
-                  </p>
-                </div>
-
-                <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
-                  {user.role === 'admin' ? 'Administrator' : 'User'}
-                </Badge>
-
-                {user.isVerified && (
-                  <Badge variant="outline" className="text-green-600 border-green-600">
-                    Verified Account
-                  </Badge>
-                )}
-
-                {user.createdAt && (
-                  <div className="text-xs text-zinc-500 flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
-                    Member since {format(new Date(user.createdAt), 'MMM yyyy')}
+        <div className="grid lg:grid-cols-4 gap-6">
+          {/* Left Sidebar */}
+          <div className="lg:col-span-1 space-y-4">
+            {/* Profile Card */}
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex flex-col items-center text-center space-y-4">
+                  <Avatar className="h-20 w-20">
+                    {user.avatar && user.avatar !== 'default-avatar-url' ? (
+                      <AvatarImage src={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000'}${user.avatar}`} alt={user.name} />
+                    ) : (
+                      <AvatarFallback className="text-xl">
+                        <User className="h-10 w-10" />
+                      </AvatarFallback>
+                    )}
+                  </Avatar>
+                  
+                  <div className="w-full">
+                    <h2 className="text-lg font-semibold">{user.name}</h2>
+                    <p className="text-xs text-zinc-500 flex items-center justify-center gap-1 mt-1">
+                      <Mail className="h-3 w-3" />
+                      {user.email}
+                    </p>
                   </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
 
-          {/* Profile Form */}
-          <div className="md:col-span-2 space-y-6">
+                  <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
+                    {user.role === 'admin' ? 'Administrator' : 'User'}
+                  </Badge>
+
+                  {user.isVerified && (
+                    <Badge variant="outline" className="text-green-600 border-green-600">
+                      Verified
+                    </Badge>
+                  )}
+
+                  {user.createdAt && (
+                    <div className="text-xs text-zinc-500 flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      Member since {format(new Date(user.createdAt), 'MMM yyyy')}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Navigation Menu */}
+            <Card>
+              <CardContent className="p-4">
+                <nav className="space-y-1">
+                  <button
+                    className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md bg-zinc-100 text-zinc-900"
+                  >
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      <span>Profile</span>
+                    </div>
+                  </button>
+                  
+                  <button
+                    className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md hover:bg-zinc-100 text-zinc-600 hover:text-zinc-900 transition-colors"
+                    onClick={() => toast.info('Coming soon!')}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Ticket className="h-4 w-4" />
+                      <span>My Bookings</span>
+                    </div>
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                  
+                  <button
+                    className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md hover:bg-zinc-100 text-zinc-600 hover:text-zinc-900 transition-colors"
+                    onClick={() => toast.info('Coming soon!')}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Heart className="h-4 w-4" />
+                      <span>Watchlist</span>
+                    </div>
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                  
+                  <button
+                    className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md hover:bg-zinc-100 text-zinc-600 hover:text-zinc-900 transition-colors"
+                    onClick={() => toast.info('Coming soon!')}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Settings className="h-4 w-4" />
+                      <span>Settings</span>
+                    </div>
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </nav>
+              </CardContent>
+            </Card>
+
+            {/* Add Your Theater CTA - Only show if user doesn't have a theater */}
+            {!hasTheater && (
+              <Card className="border-2 border-zinc-900 bg-zinc-900 text-white">
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    <div className="flex justify-center">
+                      <div className="h-12 w-12 rounded-full bg-white/10 flex items-center justify-center">
+                        <Building2 className="h-6 w-6" />
+                      </div>
+                    </div>
+                    
+                    <div className="text-center space-y-2">
+                      <h3 className="font-semibold text-lg">Own a Theater?</h3>
+                      <p className="text-sm text-zinc-300">
+                        List your venue and start selling tickets to millions of movie lovers
+                      </p>
+                    </div>
+
+                    <Button 
+                      onClick={handleAddTheater}
+                      className="w-full bg-white text-zinc-900 hover:bg-zinc-100"
+                    >
+                      <Building2 className="mr-2 h-4 w-4" />
+                      Add Your Theater
+                    </Button>
+
+                    <p className="text-xs text-zinc-400 text-center">
+                      Free to list • Easy setup • Start earning
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Main Content */}
+          <div className="lg:col-span-3 space-y-6">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <Card>
                 <CardHeader>
@@ -162,22 +265,24 @@ export default function ProfilePage() {
                     </div>
                   )}
                   
-                  <div className="space-y-2">
-                    <Label htmlFor="fullname">Full Name</Label>
-                    <Input
-                      id="fullname"
-                      {...register('fullname')}
-                      placeholder="Enter your full name"
-                    />
-                  </div>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="fullname">Full Name</Label>
+                      <Input
+                        id="fullname"
+                        {...register('fullname')}
+                        placeholder="Enter your full name"
+                      />
+                    </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <Input
-                      id="phone"
-                      {...register('phone')}
-                      placeholder="Enter phone number (10-15 digits)"
-                    />
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">Phone Number</Label>
+                      <Input
+                        id="phone"
+                        {...register('phone')}
+                        placeholder="Enter phone number"
+                      />
+                    </div>
                   </div>
                 </CardContent>
               </Card>

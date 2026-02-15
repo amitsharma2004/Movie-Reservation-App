@@ -98,15 +98,6 @@ const threaterValidationSchema = Joi.object({
     isActive: Joi.boolean()
         .default(true),
     
-    threaterLogo: Joi.string()
-        .required()
-        .uri()
-        .messages({
-            'string.empty': 'Theater logo is required',
-            'any.required': 'Theater logo is required',
-            'string.uri': 'Theater logo must be a valid URL'
-        }),
-    
     contactNumber: Joi.string()
         .trim()
         .pattern(/^[+]?[0-9\s\-\(\)]{10,15}$/)

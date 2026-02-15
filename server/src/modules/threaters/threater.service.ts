@@ -107,7 +107,7 @@ export const getTheaterById = async (theaterId: string) => {
 
 export const getAllTheaters = async (filters?: { city?: string; isActive?: boolean }) => {
     try {
-        const query: any = {};
+        const query: any = { approvalStatus: 'approved' }; // Only show approved theaters
 
         if (filters?.city) {
             query.city = new RegExp(filters.city, 'i');
@@ -148,12 +148,95 @@ export const searchTheaters = async (searchTerm: string) => {
     try {
         const theaters = await Threater.find({
             $text: { $search: searchTerm },
-            isActive: true
+            isActive: true,
+            approvalStatus: 'approved' // Only show approved theaters
         }).sort({ rating: -1 });
 
         return theaters;
     } catch (error: any) {
         logger.error(`Error searching theaters: ${error.message}`);
         throw new ApiError('Failed to search theaters', 500);
+    }
+};
+
+export const getPendingTheaters = async () => {
+    try {
+        const theaters = await Threater.find({ approvalStatus: 'pending' })
+            .populate('ownerId', 'name email')
+            .sort({ createdAt: -1 });
+        return theaters;
+    } catch (error: any) {
+        logger.error(`Error fetching pending theaters: ${error.message}`);
+        throw new ApiError('Failed to fetch pending theaters', 500);
+    }
+};
+
+export const approveTheater = async (theaterId: string, adminId: string) => {
+    try {
+        const theater = await Threater.findById(theaterId);
+
+        if (!theater) {
+            throw new ApiError('Theater not found', 404);
+        }
+
+        if (theater.approvalStatus === 'approved') {
+            throw new ApiError('Theater is already approved', 400);
+        }
+
+        theater.approvalStatus = 'approved';
+        theater.approvedBy = adminId as any;
+        theater.approvedAt = new Date();
+        await theater.save();
+
+        return theater;
+    } catch (error: any) {
+        if (error instanceof ApiError) {
+            throw error;
+        }
+        logger.error(`Error approving theater: ${error.message}`);
+        throw new ApiError('Failed to approve theater', 500);
+    }
+};
+
+export const rejectTheater = async (theaterId: string, reason?: string) => {
+    try {
+        const theater = await Threater.findById(theaterId);
+
+        if (!theater) {
+            throw new ApiError('Theater not found', 404);
+        }
+
+        theater.approvalStatus = 'rejected';
+        theater.rejectedAt = new Date();
+        if (reason) {
+            theater.rejectionReason = reason;
+        }
+        await theater.save();
+
+        return theater;
+    } catch (error: any) {
+        if (error instanceof ApiError) {
+            throw error;
+        }
+        logger.error(`Error rejecting theater: ${error.message}`);
+        throw new ApiError('Failed to reject theater', 500);
+    }
+};
+
+export const deleteUnacceptedTheaters = async () => {
+    try {
+        // Delete theaters that are still pending or rejected after 24 hours
+        const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        
+        const result = await Threater.deleteMany({
+            approvalStatus: { $in: ['pending', 'rejected'] },
+            createdAt: { $lt: oneDayAgo }
+        });
+
+        logger.info(`Deleted ${result.deletedCount} unaccepted theaters`);
+        return result.deletedCount;
+    } catch (error: any) {
+        logger.error(`Error deleting unaccepted theaters: ${error.message}`);
+        throw new ApiError('Failed to delete unaccepted theaters', 500);
     }
 };

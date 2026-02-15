@@ -19,6 +19,12 @@ interface ThreaterProps {
     parkingAvailable?: boolean;
     foodCourtAvailable?: boolean;
     rating?: number;
+    ownerId: mongoose.Types.ObjectId;
+    approvalStatus: 'pending' | 'approved' | 'rejected';
+    approvedBy?: mongoose.Types.ObjectId;
+    approvedAt?: Date;
+    rejectedAt?: Date;
+    rejectionReason?: string;
 }
 
 const threaterSchema = new mongoose.Schema<ThreaterProps>({
@@ -81,7 +87,7 @@ const threaterSchema = new mongoose.Schema<ThreaterProps>({
     },
     threaterLogo: {
         type: String,
-        required: [true, 'Theater logo is required'],
+        default: '/default-theater-logo.png',
     },
     contactNumber: {
         type: String,
@@ -111,13 +117,40 @@ const threaterSchema = new mongoose.Schema<ThreaterProps>({
         max: [5, 'Rating cannot exceed 5'],
         default: 0,
     },
+    ownerId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: [true, 'Owner ID is required'],
+        index: true,
+    },
+    approvalStatus: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending',
+        index: true,
+    },
+    approvedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+    },
+    approvedAt: {
+        type: Date,
+    },
+    rejectedAt: {
+        type: Date,
+    },
+    rejectionReason: {
+        type: String,
+        trim: true,
+    },
 }, {
     timestamps: true,
     toJSON: { virtuals: true },
     toObject: { virtuals: true }
 });
 
-threaterSchema.index({ city: 1, isActive: 1 });
+threaterSchema.index({ city: 1, isActive: 1, approvalStatus: 1 });
 threaterSchema.index({ name: 'text', location: 'text', city: 'text' });
+threaterSchema.index({ ownerId: 1, approvalStatus: 1 });
 
 export const Threater = mongoose.model<ThreaterProps>('Threater', threaterSchema);
