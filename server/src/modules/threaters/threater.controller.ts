@@ -16,12 +16,19 @@ const createTheater = AsyncHandler(async (req: any, res: Response) => {
         throw new ApiError(errorMessages, 400);
     }
 
-    const theater = await theaterService.createTheater(value);
+    // Add ownerId and set approval status to pending
+    const theaterData = {
+        ...value,
+        ownerId: authRequest.userId,
+        approvalStatus: 'pending'
+    };
 
-    logger.info(`Theater created successfully: ${theater.name}`);
+    const theater = await theaterService.createTheater(theaterData);
+
+    logger.info(`Theater created successfully: ${theater.name} (Pending approval)`);
     res.status(201).json({
         success: true,
-        message: 'Theater created successfully',
+        message: 'Theater submitted for approval. Admin will review your request.',
         statusCode: 201,
         data: { theater }
     });
@@ -142,11 +149,74 @@ const searchTheaters = AsyncHandler(async (req: any, res: Response) => {
     });
 });
 
+// Get pending theaters (Admin only)
+const getPendingTheaters = AsyncHandler(async (req: any, res: Response) => {
+    logger.info('Fetching pending theaters...');
+
+    const theaters = await theaterService.getPendingTheaters();
+
+    logger.info(`Found ${theaters.length} pending theaters`);
+    res.status(200).json({
+        success: true,
+        message: 'Pending theaters fetched successfully',
+        statusCode: 200,
+        data: { theaters, count: theaters.length }
+    });
+});
+
+// Approve theater (Admin only)
+const approveTheater = AsyncHandler(async (req: any, res: Response) => {
+    const authRequest = req as AuthRequest;
+    logger.info('Approving theater...');
+
+    const { id } = authRequest.params;
+
+    if (!id) {
+        throw new ApiError('Theater ID is required', 400);
+    }
+
+    const theater = await theaterService.approveTheater(id, authRequest.userId);
+
+    logger.info(`Theater ${id} approved successfully`);
+    res.status(200).json({
+        success: true,
+        message: 'Theater approved successfully',
+        statusCode: 200,
+        data: { theater }
+    });
+});
+
+// Reject theater (Admin only)
+const rejectTheater = AsyncHandler(async (req: any, res: Response) => {
+    const authRequest = req as AuthRequest;
+    logger.info('Rejecting theater...');
+
+    const { id } = authRequest.params;
+    const { reason } = authRequest.body;
+
+    if (!id) {
+        throw new ApiError('Theater ID is required', 400);
+    }
+
+    const theater = await theaterService.rejectTheater(id, reason);
+
+    logger.info(`Theater ${id} rejected`);
+    res.status(200).json({
+        success: true,
+        message: 'Theater rejected',
+        statusCode: 200,
+        data: { theater }
+    });
+});
+
 export {
     createTheater,
     updateTheater,
     getTheater,
     getAllTheaters,
     deleteTheater,
-    searchTheaters
+    searchTheaters,
+    getPendingTheaters,
+    approveTheater,
+    rejectTheater
 };

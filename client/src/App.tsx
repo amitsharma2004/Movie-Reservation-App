@@ -7,6 +7,7 @@ import HomePage from '@/pages/home';
 import MoviesPage from '@/pages/movies';
 import MovieDetailPage from '@/pages/movie-detail';
 import ProfilePage from '@/pages/profile';
+import TheaterOnboardingPage from '@/pages/theater-onboarding';
 import TheatersPage from '@/pages/admin/theaters';
 import NewTheaterPage from '@/pages/admin/theater-new';
 import EditTheaterPage from '@/pages/admin/theater-edit';
@@ -39,6 +40,16 @@ function App() {
             element={
               <ProtectedRoute>
                 <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          
+          {/* Theater Onboarding Route */}
+          <Route
+            path="/theater/onboarding"
+            element={
+              <ProtectedRoute>
+                <TheaterOnboardingPage />
               </ProtectedRoute>
             }
           />

@@ -11,11 +11,15 @@ import rateLimit from './src/utils/rate_limiting.js';
 import ThreaterRouter from './src/modules/threaters/threater.route.js';
 import cors from 'cors';
 import { dbConnect } from './src/config/database.js';
+import { initializeCronJobs } from './src/utils/cron.js';
 
 dotenv.config();
 
 const app = express();
 await dbConnect();
+
+// Initialize cron jobs
+initializeCronJobs();
 
 // Middleware
 app.use(express.json({ limit: '50mb' }));
@@ -24,10 +28,7 @@ app.use(express.urlencoded({ extended: true }));
 // app.use(corsOptions);
 
 app.use(cors({
-  origin: [
-    'https://movie-reservation-app.vercel.app',
-    'http://localhost:5173'
-  ],
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
