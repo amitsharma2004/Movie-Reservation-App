@@ -22,6 +22,7 @@ app.use(express.json({ limit: '50mb' }));
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 // app.use(corsOptions);
+
 app.use(cors({
   origin: [
     'https://movie-reservation-app.vercel.app',
