@@ -18,6 +18,17 @@ export const useTheaters = (filters?: { city?: string; isActive?: boolean }) => 
   });
 };
 
+// Fetch pending theaters (Admin only)
+export const usePendingTheaters = () => {
+  return useQuery<Theater[]>({
+    queryKey: ['theaters', 'pending'],
+    queryFn: async () => {
+      const response = await api.get('/theaters/pending');
+      return response.data.data?.theaters || [];
+    },
+  });
+};
+
 // Fetch theater by ID
 export const useTheater = (id: string) => {
   return useQuery<Theater>({
@@ -96,6 +107,44 @@ export const useDeleteTheater = () => {
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || 'Failed to delete theater');
+    },
+  });
+};
+
+// Approve theater (Admin only)
+export const useApproveTheater = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const response = await api.put(`/theaters/approve/${id}`);
+      return response.data.data?.theater;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['theaters'] });
+      toast.success('Theater approved successfully');
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Failed to approve theater');
+    },
+  });
+};
+
+// Reject theater (Admin only)
+export const useRejectTheater = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ id, reason }: { id: string; reason?: string }) => {
+      const response = await api.put(`/theaters/reject/${id}`, { reason });
+      return response.data.data?.theater;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['theaters'] });
+      toast.success('Theater rejected');
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Failed to reject theater');
     },
   });
 };

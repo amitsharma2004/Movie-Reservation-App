@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import { ApiError } from './globalErrorHandler.js';
 import logger from '../utils/logger.js';
 import { Request, Response, NextFunction } from 'express';
+import { User } from '../modules/auth/auth.model.js';
 
 export interface AuthRequest extends Request {
     userId: string;
@@ -72,7 +73,7 @@ const verifyToken = (req: Request, res: Response, next: NextFunction): void => {
     }
 };
 
-const verifyAdmin = (req: Request, res: Response, next: NextFunction): void => {
+const verifyAdmin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const token = extractToken(req);
         
@@ -88,12 +89,24 @@ const verifyAdmin = (req: Request, res: Response, next: NextFunction): void => {
 
         const decoded = jwt.verify(token, jwtSecret) as JwtPayload;
         
-        if (decoded.role !== 'admin') {
+        // Fetch user from database to verify current role
+        const user = await User.findById(decoded.id).select('role email');
+        
+        if (!user) {
+            logger.warn(`Admin verification failed: User not found (ID: ${decoded.id})`);
+            throw new ApiError('User not found', 404);
+        }
+        
+        // Verify role from database (not from token)
+        if (user.role !== 'admin') {
+            logger.warn(`Admin access denied for user: ${user.email} (Role: ${user.role})`);
             throw new ApiError('Access denied. Admin privileges required', 403);
         }
         
+        logger.info(`Admin access granted for user: ${user.email}`);
+        
         (req as AuthRequest).userId = decoded.id;
-        (req as AuthRequest).role = decoded.role;
+        (req as AuthRequest).role = user.role;
         
         next();
     } catch (error: any) {

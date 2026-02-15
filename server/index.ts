@@ -1,15 +1,13 @@
 import express, { Request, Response, NextFunction } from 'express';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
-// import corsOptions from './src/utils/cors.js';
 import logger from './src/utils/logger.js';
-import syncMovies from './src/utils/syncMovies.js';
 import MovieRouter from './src/modules/movies/movie.route.js';
 import authRouter from './src/modules/auth/auth.routes.js';
 import './src/config/redis.js'; // Import to initialize Redis connection
 import rateLimit from './src/utils/rate_limiting.js';
 import ThreaterRouter from './src/modules/threaters/threater.route.js';
-import cors from 'cors';
+import corsOptions from './src/utils/cors.js';
 import { dbConnect } from './src/config/database.js';
 import { initializeCronJobs } from './src/utils/cron.js';
 
@@ -21,18 +19,13 @@ await dbConnect();
 // Initialize cron jobs
 initializeCronJobs();
 
+// CORS - Must be before other middleware
+app.use(corsOptions);
+
 // Middleware
 app.use(express.json({ limit: '50mb' }));
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
-// app.use(corsOptions);
-
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-}));
 
 
 // Serve static files from uploads directory

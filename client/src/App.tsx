@@ -9,6 +9,7 @@ import MovieDetailPage from '@/pages/movie-detail';
 import ProfilePage from '@/pages/profile';
 import TheaterOnboardingPage from '@/pages/theater-onboarding';
 import TheatersPage from '@/pages/admin/theaters';
+import TheaterManagementPage from '@/pages/admin/theater-management';
 import NewTheaterPage from '@/pages/admin/theater-new';
 import EditTheaterPage from '@/pages/admin/theater-edit';
 import { GuestRoute } from '@/middleware/guest-route';
@@ -55,6 +56,14 @@ function App() {
           />
           
           {/* Admin Routes */}
+          <Route
+            path="/admin/theater-management"
+            element={
+              <AdminRoute>
+                <TheaterManagementPage />
+              </AdminRoute>
+            }
+          />
           <Route
             path="/admin/theaters"
             element={

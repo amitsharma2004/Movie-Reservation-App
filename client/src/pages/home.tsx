@@ -47,10 +47,16 @@ export default function HomePage() {
             </Button>
             
             {user?.role === 'admin' && (
-              <Button variant="ghost" onClick={() => navigate('/admin/theaters')}>
-                <Building2 className="mr-2 h-4 w-4" />
-                Theaters
-              </Button>
+              <>
+                <Button variant="ghost" onClick={() => navigate('/admin/theater-management')}>
+                  <Building2 className="mr-2 h-4 w-4" />
+                  Manage Theaters
+                </Button>
+                <Button variant="ghost" onClick={() => navigate('/admin/theaters')}>
+                  <Building2 className="mr-2 h-4 w-4" />
+                  All Theaters
+                </Button>
+              </>
             )}
             
             <div 
@@ -92,10 +98,16 @@ export default function HomePage() {
               Browse Movies
             </Button>
             {user?.role === 'admin' && (
-              <Button variant="outline" onClick={() => navigate('/admin/theaters')}>
-                <Building2 className="mr-2 h-4 w-4" />
-                Manage Theaters
-              </Button>
+              <>
+                <Button variant="outline" onClick={() => navigate('/admin/theater-management')}>
+                  <Building2 className="mr-2 h-4 w-4" />
+                  Manage Theaters
+                </Button>
+                <Button variant="outline" onClick={() => navigate('/admin/theaters')}>
+                  <Building2 className="mr-2 h-4 w-4" />
+                  All Theaters
+                </Button>
+              </>
             )}
           </div>
         </div>

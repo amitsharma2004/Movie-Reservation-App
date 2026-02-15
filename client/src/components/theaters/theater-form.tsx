@@ -20,7 +20,6 @@ const theaterSchema = z.object({
   screens: z.number().min(1, 'Must have at least 1 screen'),
   amenities: z.array(z.string()).optional(),
   isActive: z.boolean(),
-  threaterLogo: z.string().url('Must be a valid URL'),
   contactNumber: z.string().optional(),
   email: z.string().email('Must be a valid email').optional().or(z.literal('')),
   description: z.string().max(1000, 'Description cannot exceed 1000 characters').optional(),
@@ -34,12 +33,14 @@ interface TheaterFormProps {
   isLoading?: boolean;
 }
 
+type FormValues = z.infer<typeof theaterSchema>;
+
 export function TheaterForm({ theater, onSubmit, isLoading }: TheaterFormProps) {
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<TheaterFormData>({
+  } = useForm<FormValues>({
     resolver: zodResolver(theaterSchema),
     defaultValues: theater ? {
       name: theater.name,
@@ -53,8 +54,7 @@ export function TheaterForm({ theater, onSubmit, isLoading }: TheaterFormProps) 
       screens: theater.screens,
       amenities: theater.amenities || [],
       isActive: theater.isActive,
-      threaterLogo: theater.threaterLogo,
-      contactNumber: theater.contactNumber || '',
+      contactNumber: theater.contactNumber || theater.phone || '',
       email: theater.email || '',
       description: theater.description || '',
       parkingAvailable: theater.parkingAvailable || false,
@@ -67,8 +67,12 @@ export function TheaterForm({ theater, onSubmit, isLoading }: TheaterFormProps) 
     },
   });
 
+  const handleFormSubmit = (data: FormValues) => {
+    onSubmit(data as TheaterFormData);
+  };
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
       <Card>
         <CardContent className="p-6 space-y-4">
           <h3 className="text-lg font-semibold">Basic Information</h3>
@@ -195,16 +199,9 @@ export function TheaterForm({ theater, onSubmit, isLoading }: TheaterFormProps) 
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="threaterLogo">Theater Logo URL *</Label>
-            <Input
-              id="threaterLogo"
-              {...register('threaterLogo')}
-              placeholder="https://example.com/logo.png"
-            />
-            {errors.threaterLogo && (
-              <p className="text-sm text-red-600">{errors.threaterLogo.message}</p>
-            )}
+          <div className="rounded-md bg-zinc-100 p-3 text-sm text-zinc-600">
+            <p className="font-medium mb-1">📸 Theater Logo</p>
+            <p>Logo upload feature coming soon. A default logo will be used for now.</p>
           </div>
 
           <div className="space-y-2">

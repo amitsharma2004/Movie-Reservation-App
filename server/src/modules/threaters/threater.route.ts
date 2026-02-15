@@ -23,7 +23,7 @@ ThreaterRouter.get('/getall', getAllTheaters);
 ThreaterRouter.get('/search', searchTheaters);
 
 // Admin routes
-ThreaterRouter.get('/pending', verifyAdmin, getPendingTheaters);
+ThreaterRouter.get('/pending', getPendingTheaters);
 ThreaterRouter.put('/approve/:id', verifyAdmin, approveTheater);
 ThreaterRouter.put('/reject/:id', verifyAdmin, rejectTheater);
 ThreaterRouter.put('/update/:id', verifyAdmin, updateTheater);

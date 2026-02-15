@@ -11,14 +11,20 @@ export interface Theater {
   screens: number;
   amenities?: string[];
   isActive: boolean;
-  threaterLogo: string;
+  threaterLogo?: string;
   contactNumber?: string;
+  phone?: string;
   email?: string;
   description?: string;
   parkingAvailable?: boolean;
   foodCourtAvailable?: boolean;
   rating?: number;
-  createdAt?: string;
+  ownerId?: string;
+  approvalStatus?: 'pending' | 'approved' | 'rejected';
+  approvedBy?: string;
+  approvedAt?: string;
+  rejectionReason?: string;
+  createdAt: string;
   updatedAt?: string;
 }
 
@@ -34,7 +40,6 @@ export interface TheaterFormData {
   screens: number;
   amenities?: string[];
   isActive: boolean;
-  threaterLogo: string;
   contactNumber?: string;
   email?: string;
   description?: string;
