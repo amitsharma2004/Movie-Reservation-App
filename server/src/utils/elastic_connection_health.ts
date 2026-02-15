@@ -3,6 +3,10 @@ import logger from "./logger.js";
 
 async function checkConnection () {
     try {
+        if (!esClient) {
+            logger.warn('Elasticsearch client not configured');
+            return;
+        }
         const health = await esClient.cluster.health();
         logger.info(`ES health: ${ health }`);
     } catch (error) {
