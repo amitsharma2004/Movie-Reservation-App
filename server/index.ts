@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 // import corsOptions from './src/utils/cors.js';
@@ -33,13 +33,13 @@ app.use (cors({
 // Serve static files from uploads directory
 app.use('/uploads', express.static('uploads'));
 
-app.use((req: any, _: any, next: any) => {
+app.use((req: Request, _res: Response, next: NextFunction) => {
     logger.info(`Request: ${req.method}: ${req.url}`);
     next();
 })
 
 // Routes
-app.get('/health', (_, res) => {
+app.get('/health', (_req: Request, res: Response) => {
     res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
