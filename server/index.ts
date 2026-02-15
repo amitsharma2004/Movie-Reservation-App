@@ -26,25 +26,9 @@ app.use(express.json({ limit: '50mb' }));
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 // app.use(corsOptions);
-const allowedOrigins = [
-  process.env.FRONTEND_URL,
-  'https://movie-reservation-app.vercel.app',
-  'https://movie-reservation-app-git-main-amit-sharmas-projects-ad05ea67.vercel.app',
-  'http://localhost:5173'
-].filter(Boolean);
 
 app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps, Postman, or curl)
-    if (!origin) return callback(null, true);
-    
-    // Check if origin is in allowed list or matches Vercel pattern
-    if (allowedOrigins.includes(origin) || /https:\/\/movie-reservation-app.*\.vercel\.app$/.test(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
