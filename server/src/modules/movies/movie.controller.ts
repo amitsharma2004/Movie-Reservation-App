@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { Movie } from "./movie.model.js";
+import { Comment } from "../comments/comment.model.js";
 import logger from "../../utils/logger.js";
 import { AsyncHandler, ApiError } from "../../middlewares/globalErrorHandler.js";
 import movieSchema from "./movie.validate.js";

@@ -12,6 +12,8 @@ export default function MovieDetailPage() {
   const navigate = useNavigate();
   const { data: movie, isLoading, error } = useMovie(id!);
 
+  console.log (movie);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-zinc-50">
@@ -120,20 +122,38 @@ export default function MovieDetailPage() {
                   </div>
 
                   <div className="flex items-start gap-3">
-                    <Ticket className="h-5 w-5 text-zinc-500 mt-0.5" />
-                    <div>
-                      <p className="text-sm text-zinc-500">Tickets Available</p>
-                      <p className="font-medium">{movie.ticketsRemaining} / {movie.totalTickets.Silver + movie.totalTickets.Gold + movie.totalTickets.Platinum}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
                     <Users className="h-5 w-5 text-zinc-500 mt-0.5" />
                     <div>
                       <p className="text-sm text-zinc-500">Tickets Sold</p>
                       <p className="font-medium">{movie.totalTicketsSold}</p>
                     </div>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                  <Ticket className="h-5 w-5 text-zinc-500" />
+                  Tickets Remaining
+                </h2>
+                <div className="grid grid-cols-3 gap-3">
+                  {(['Silver', 'Gold', 'Platinum'] as const).map((cat) => {
+                    const remaining = movie.ticketsRemaining?.[cat] ?? 0;
+                    return (
+                      <div
+                        key={cat}
+                        className="flex flex-col items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 p-4 gap-1"
+                      >
+                        <span className="text-xs font-medium text-zinc-500 uppercase tracking-wide">{cat}</span>
+                        <span className={`text-2xl font-bold ${remaining === 0 ? 'text-red-500' : remaining < 10 ? 'text-amber-500' : 'text-zinc-900'}`}>
+                          {remaining}
+                        </span>
+                        <span className="text-xs text-zinc-400">seats left</span>
+                      </div>
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>
@@ -193,11 +213,26 @@ export default function MovieDetailPage() {
             </Card>
 
             <div className="flex gap-4">
-              <Button size="lg" className="flex-1" disabled={movie.ticketsRemaining === 0}>
-                {movie.ticketsRemaining === 0 ? 'Sold Out' : 'Book Tickets'}
-              </Button>
+              {(() => {
+                const remaining = movie.ticketsRemaining;
+                const total = (remaining?.Silver ?? 0) + (remaining?.Gold ?? 0) + (remaining?.Platinum ?? 0);
+                return (
+                  <Button
+                    size="lg"
+                    className="flex-1"
+                    disabled={total === 0}
+                    onClick={() => navigate(`/booking/${movie._id}`)}
+                  >
+                    {total === 0 ? 'Sold Out' : 'Buy Now'}
+                  </Button>
+                );
+              })()}
               {movie.video_url && (
-                <Button size="lg" variant="outline">
+                <Button 
+                  size="lg" 
+                  variant="outline"
+                  onClick={() => window.open(movie.video_url, '_blank')}
+                >
                   Watch Trailer
                 </Button>
               )}

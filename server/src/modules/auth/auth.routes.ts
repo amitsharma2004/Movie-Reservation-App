@@ -16,7 +16,7 @@ userRouter.post('/logout', verifyToken, logout);
 // GET /auth/profile - Get user profile
 userRouter.get('/profile', verifyToken, getUser);
 
-userRouter.put ('/profile', verifyToken, updateUser);
-// PUT /auth/update - Update user profile
+// PUT /auth/profile - Update user profile
+userRouter.put('/profile', verifyToken, updateUser);
 
 export default userRouter;

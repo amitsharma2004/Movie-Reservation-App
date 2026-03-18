@@ -223,10 +223,11 @@ const updateUser = AsyncHandler(async (req: Request, res: Response) => {
     }
 });
 
+
 export { 
     register,
     login,
     logout,
     getUser,
-    updateUser
+    updateUser,
 };
