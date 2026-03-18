@@ -10,11 +10,15 @@ import ThreaterRouter from './src/modules/threaters/threater.route.js';
 import corsOptions from './src/utils/cors.js';
 import { dbConnect } from './src/config/database.js';
 import { initializeCronJobs } from './src/utils/cron.js';
+import './src/modules/comments/comment.model.js';
+import { seedMovies } from './src/utils/seedMovies.js';
 
 dotenv.config();
 
 const app = express();
 await dbConnect();
+
+await seedMovies ();
 
 // Initialize cron jobs
 initializeCronJobs();

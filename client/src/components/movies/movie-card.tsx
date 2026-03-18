@@ -22,6 +22,7 @@ export function MovieCard({ movie }: MovieCardProps) {
   };
 
   const isUpcoming = new Date(movie.releaseDate) > new Date();
+  const totalRemaining = (movie.ticketsRemaining?.Silver ?? 0) + (movie.ticketsRemaining?.Gold ?? 0) + (movie.ticketsRemaining?.Platinum ?? 0);
 
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group">
@@ -60,7 +61,9 @@ export function MovieCard({ movie }: MovieCardProps) {
           
           <div className="flex items-center gap-2">
             <Ticket className="h-4 w-4" />
-            <span>{movie.ticketsRemaining} tickets left</span>
+            <span className={totalRemaining === 0 ? 'text-red-600 font-semibold' : totalRemaining < 10 ? 'text-amber-600 font-semibold' : ''}>
+              {totalRemaining} tickets remaining
+            </span>
           </div>
         </div>
 
@@ -79,9 +82,10 @@ export function MovieCard({ movie }: MovieCardProps) {
       <CardFooter className="p-4 pt-0">
         <Button
           className="w-full"
-          onClick={() => navigate(`/movies/${movie._id}`)}
+          onClick={() => navigate(totalRemaining > 0 ? `/booking/${movie._id}` : `/movies/${movie._id}`)}
+          disabled={totalRemaining === 0}
         >
-          View Details
+          {totalRemaining === 0 ? 'Sold Out' : 'Book Now'}
         </Button>
       </CardFooter>
     </Card>

@@ -11,7 +11,11 @@ interface Movie {
         Platinum: number;
     };
     duration: number;
-    ticketsRemaining: number;
+    ticketsRemaining: {
+        Silver: number,
+        Gold: number,
+        Platinum: number
+    };
     releaseDate: Date;
     languages: string[];
     genre: string;
@@ -57,10 +61,12 @@ const movieSchema = new mongoose.Schema<Movie>({
         required: true
     },
     ticketsRemaining: {
-        type: Number,
-        required: true,
-        min: [0, 'Tickets remaining cannot be negative'],
-        default: 0
+        type: {
+            Silver: { type: Number },
+            Gold: { type: Number },
+            Platinum: { type: Number }
+        },
+        required: true
     },
     releaseDate: {
         type: Date,
@@ -139,10 +145,5 @@ movieSchema.index({ releaseDate: -1 });
 movieSchema.index({ showTime: 1 });
 
 // Calculate tickets remaining before saving
-movieSchema.pre('save', function() {
-    if (this.isNew) {
-        this.ticketsRemaining = this.totalTickets.Silver + this.totalTickets.Gold + this.totalTickets.Platinum;
-    }
-});
 
 export const Movie = mongoose.model<Movie>("Movie", movieSchema);

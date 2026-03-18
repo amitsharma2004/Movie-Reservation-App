@@ -38,7 +38,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-zinc-50">
       <header className="bg-white border-b border-zinc-200">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold cursor-pointer" onClick={() => navigate('/')}>Movie Reservation</h1>
+          <h1 className="text-2xl font-bold cursor-pointer" onClick={() => navigate('/')}>Movify</h1>
           
           <div className="flex items-center gap-4">
             <Button variant="ghost" onClick={() => navigate('/movies')}>

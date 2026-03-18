@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TheaterTable } from '@/components/theaters/theater-table';
-import { CheckCircle, XCircle, MapPin, Phone, Mail, User, Clock } from 'lucide-react';
+import { CheckCircle, XCircle, MapPin, Phone, Mail, Clock } from 'lucide-react';
 import type { Theater } from '@/types/theater';
 
 export default function TheaterManagementPage() {
@@ -14,8 +14,8 @@ export default function TheaterManagementPage() {
   
   const { data: pendingTheaters = [], isLoading: isLoadingPending } = usePendingTheaters();
   const { data: allTheaters = [], isLoading: isLoadingAll } = useTheaters();
-  const { mutate: approveTheater, isPending: isApproving } = useApproveTheater();
-  const { mutate: rejectTheater, isPending: isRejecting } = useRejectTheater();
+  const { mutate: approveTheater } = useApproveTheater();
+  const { mutate: rejectTheater } = useRejectTheater();
 
   const [processingId, setProcessingId] = useState<string | null>(null);
 
@@ -34,7 +34,6 @@ export default function TheaterManagementPage() {
   };
 
   const approvedCount = allTheaters.filter(t => t.approvalStatus === 'approved').length;
-  const rejectedCount = allTheaters.filter(t => t.approvalStatus === 'rejected').length;
 
   return (
     <div className="min-h-screen bg-zinc-50">
@@ -84,9 +83,12 @@ export default function TheaterManagementPage() {
         </div>
 
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <Tabs>
           <TabsList className="mb-6">
-            <TabsTrigger value="pending">
+            <TabsTrigger 
+              active={activeTab === 'pending'}
+              onClick={() => setActiveTab('pending')}
+            >
               Pending Requests
               {pendingTheaters.length > 0 && (
                 <Badge variant="secondary" className="ml-2">
@@ -94,46 +96,55 @@ export default function TheaterManagementPage() {
                 </Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="all">All Theaters</TabsTrigger>
+            <TabsTrigger 
+              active={activeTab === 'all'}
+              onClick={() => setActiveTab('all')}
+            >
+              All Theaters
+            </TabsTrigger>
           </TabsList>
 
           {/* Pending Requests Tab */}
-          <TabsContent value="pending">
-            {isLoadingPending ? (
-              <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-64 w-full" />
-                ))}
-              </div>
-            ) : pendingTheaters.length === 0 ? (
-              <Card className="p-12 text-center">
-                <div className="flex flex-col items-center">
-                  <div className="h-16 w-16 bg-zinc-100 rounded-full flex items-center justify-center mb-4">
-                    <CheckCircle className="h-8 w-8 text-zinc-400" />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2">No Pending Requests</h3>
-                  <p className="text-zinc-600">All theater requests have been reviewed</p>
+          {activeTab === 'pending' && (
+            <TabsContent>
+              {isLoadingPending ? (
+                <div className="space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="h-64 w-full" />
+                  ))}
                 </div>
-              </Card>
-            ) : (
-              <div className="space-y-4">
-                {pendingTheaters.map((theater) => (
-                  <PendingTheaterCard
-                    key={theater._id}
-                    theater={theater}
-                    onApprove={handleApprove}
-                    onReject={handleReject}
-                    isProcessing={processingId === theater._id}
-                  />
-                ))}
-              </div>
-            )}
-          </TabsContent>
+              ) : pendingTheaters.length === 0 ? (
+                <Card className="p-12 text-center">
+                  <div className="flex flex-col items-center">
+                    <div className="h-16 w-16 bg-zinc-100 rounded-full flex items-center justify-center mb-4">
+                      <CheckCircle className="h-8 w-8 text-zinc-400" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2">No Pending Requests</h3>
+                    <p className="text-zinc-600">All theater requests have been reviewed</p>
+                  </div>
+                </Card>
+              ) : (
+                <div className="space-y-4">
+                  {pendingTheaters.map((theater) => (
+                    <PendingTheaterCard
+                      key={theater._id}
+                      theater={theater}
+                      onApprove={handleApprove}
+                      onReject={handleReject}
+                      isProcessing={processingId === theater._id}
+                    />
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+          )}
 
           {/* All Theaters Tab */}
-          <TabsContent value="all">
-            <TheaterTable theaters={allTheaters} isLoading={isLoadingAll} />
-          </TabsContent>
+          {activeTab === 'all' && (
+            <TabsContent>
+              <TheaterTable theaters={allTheaters} isLoading={isLoadingAll} />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </div>
@@ -254,7 +265,7 @@ function PendingTheaterCard({
         <Button
           onClick={() => onApprove(theater._id)}
           disabled={isProcessing}
-          className="flex-1 bg-green-600 hover:bg-green-700"
+          className="flex-1 bg-green-600 hover:bg-green-700 text-white"
         >
           <CheckCircle className="mr-2 h-4 w-4" />
           Approve Theater

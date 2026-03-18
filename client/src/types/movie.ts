@@ -4,7 +4,11 @@ export interface Movie {
   description: string;
   cast: string[];
   duration: number;
-  ticketsRemaining: number;
+  ticketsRemaining: {
+    Silver: number;
+    Gold: number;
+    Platinum: number;
+  };
   releaseDate: string;
   languages: string[];
   genre: string;
